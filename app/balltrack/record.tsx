@@ -4,100 +4,12 @@ import { useRouter } from 'expo-router'
 import { useRef, useState } from 'react'
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import Svg, { Line, Polygon, Rect } from 'react-native-svg'
 import { uploadSession } from '../../src/balltrack/api'
-import { BATTER_BOX, BOWLER_BOX } from '../../src/balltrack/types'
+import { DraggableStumpBox, PitchOverlay } from '../../src/balltrack/pitchGuide'
+import { BATTER_BOX, BOWLER_BOX, type Box } from '../../src/balltrack/types'
 import { colors } from '../../src/theme'
 
 type Phase = 'align' | 'armed'
-
-function pct(n: number) {
-  return `${n * 100}%`
-}
-
-function DashedBox({
-  box,
-  label,
-}: {
-  box: { x: number; y: number; w: number; h: number }
-  label: string
-}) {
-  return (
-    <View
-      pointerEvents="none"
-      style={{
-        position: 'absolute',
-        left: pct(box.x),
-        top: pct(box.y),
-        width: pct(box.w),
-        height: pct(box.h),
-        borderWidth: 2,
-        borderColor: '#E11D2A',
-        borderStyle: 'dashed',
-        borderRadius: 4,
-        alignItems: 'center',
-      }}
-    >
-      <Text
-        style={{
-          marginTop: -20,
-          color: '#E11D2A',
-          fontSize: 12,
-          fontWeight: '800',
-        }}
-      >
-        {label}
-      </Text>
-    </View>
-  )
-}
-
-function ArmedGuides() {
-  const bowTop = BOWLER_BOX.y
-  const bowMidX = BOWLER_BOX.x + BOWLER_BOX.w / 2
-  const batBottom = BATTER_BOX.y + BATTER_BOX.h
-  const batMidX = BATTER_BOX.x + BATTER_BOX.w / 2
-  const stripW = 0.12
-  const points = [
-    `${(bowMidX - stripW) * 100},${bowTop * 100}`,
-    `${(bowMidX + stripW) * 100},${bowTop * 100}`,
-    `${(batMidX + stripW * 0.55) * 100},${batBottom * 100}`,
-    `${(batMidX - stripW * 0.55) * 100},${batBottom * 100}`,
-  ].join(' ')
-  const stumpW = BOWLER_BOX.w * 0.12
-  const stumpGap = BOWLER_BOX.w * 0.22
-  const stumpH = BOWLER_BOX.h * 0.92
-  const stumpY = BOWLER_BOX.y + BOWLER_BOX.h * 0.04
-  const left = BOWLER_BOX.x + BOWLER_BOX.w / 2 - stumpGap - stumpW / 2
-
-  return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <Polygon points={points} fill="rgba(40,120,255,0.35)" stroke="#3B82F6" strokeWidth="0.6" />
-        <Line
-          x1={bowMidX * 100}
-          y1={bowTop * 100}
-          x2={batMidX * 100}
-          y2={batBottom * 100}
-          stroke="#2563EB"
-          strokeWidth="1.4"
-        />
-        {[0, 1, 2].map((i) => (
-          <Rect
-            key={i}
-            x={(left + i * stumpGap) * 100}
-            y={stumpY * 100}
-            width={stumpW * 100}
-            height={stumpH * 100}
-            fill="#FACC15"
-            stroke="#CA8A04"
-            strokeWidth="0.2"
-          />
-        ))}
-      </Svg>
-    </View>
-  )
-}
 
 export default function BallTrackRecord() {
   const router = useRouter()
@@ -107,6 +19,9 @@ export default function BallTrackRecord() {
   const [phase, setPhase] = useState<Phase>('align')
   const [recording, setRecording] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [bowler, setBowler] = useState<Box>(BOWLER_BOX)
+  const [batter, setBatter] = useState<Box>(BATTER_BOX)
+  const [layout, setLayout] = useState({ w: 0, h: 0 })
 
   async function toggleRecord() {
     if (!permission?.granted) {
@@ -129,7 +44,7 @@ export default function BallTrackRecord() {
         uri: clip.uri,
         name: 'session.mp4',
         mimeType: 'video/mp4',
-        calibration: { bowler: BOWLER_BOX, batter: BATTER_BOX, pitch_length_m: 20.12 },
+        calibration: { bowler, batter, pitch_length_m: 20.12 },
       })
       router.replace(`/balltrack/processing/${res.job_id}`)
     } catch (err) {
@@ -143,7 +58,7 @@ export default function BallTrackRecord() {
   if (!permission) return <View style={styles.fill} />
 
   return (
-    <View style={styles.fill}>
+    <View style={styles.fill} onLayout={(e) => setLayout(e.nativeEvent.layout)}>
       {permission.granted ? (
         <CameraView
           ref={cameraRef}
@@ -162,16 +77,17 @@ export default function BallTrackRecord() {
       )}
 
       {recording ? <View pointerEvents="none" style={styles.recordingFrame} /> : null}
+
       {phase === 'align' ? (
         <>
-          <DashedBox box={BATTER_BOX} label="Striker stumps" />
-          <DashedBox box={BOWLER_BOX} label="Non-Striker stumps" />
+          <DraggableStumpBox box={batter} label="Striker stumps" onChange={setBatter} layout={layout} />
+          <DraggableStumpBox box={bowler} label="Non-Striker stumps" onChange={setBowler} layout={layout} />
         </>
       ) : (
-        <ArmedGuides />
+        <PitchOverlay bowler={bowler} batter={batter} />
       )}
 
-      <View style={{ position: 'absolute', top: insets.top + 8, left: 12, right: 12, flexDirection: 'row', alignItems: 'flex-start' }}>
+      <View style={{ position: 'absolute', top: insets.top + 8, left: 12, right: 12, flexDirection: 'row', alignItems: 'flex-start', zIndex: 2 }}>
         {phase === 'armed' ? (
           <Pressable onPress={() => setPhase('align')} style={styles.pill}>
             <Text style={styles.pillText}>Redetect</Text>
@@ -182,10 +98,10 @@ export default function BallTrackRecord() {
         <View style={styles.banner}>
           <Text style={styles.bannerText}>
             {phase === 'align'
-              ? 'Fit the stumps in the boxes then press Continue. Pinch to zoom in or out!'
+              ? 'Drag each red box onto the real stumps. Use the red dot to resize, then Continue.'
               : recording
-                ? 'Recording… bowl as usual, then stop when the over or session is done.'
-                : "Press 'Redetect' if the virtual stumps are not perfectly aligned. Start bowling, then record the session."}
+                ? 'Recording… bowl as usual, then stop when the session is done.'
+                : "Virtual stumps should sit on the real ones. Press Redetect if they don't line up, then record."}
           </Text>
         </View>
         <Pressable onPress={() => router.back()} style={styles.closeBtn} hitSlop={12}>
@@ -193,7 +109,7 @@ export default function BallTrackRecord() {
         </Pressable>
       </View>
 
-      <View style={{ position: 'absolute', bottom: insets.bottom + 24, left: 20, right: 20 }}>
+      <View style={{ position: 'absolute', bottom: insets.bottom + 24, left: 20, right: 20, zIndex: 2 }}>
         {phase === 'align' ? (
           <Pressable onPress={() => setPhase('armed')} style={styles.primary}>
             <Text style={styles.primaryText}>Continue</Text>

@@ -4,25 +4,30 @@ import { Pressable, Text, View } from 'react-native'
 import { listDeliveries, metricReady, type Delivery } from '../../src/api/client'
 import { Logo } from '../../src/components/Logo'
 import { Screen } from '../../src/components/Screen'
+import { EmptyState, ListShimmer } from '../../src/shimmer'
 import { colors } from '../../src/theme'
 
 export default function HistoryScreen() {
   const router = useRouter()
   const [items, setItems] = useState<Delivery[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useFocusEffect(
     useCallback(() => {
       let alive = true
       listDeliveries()
         .then((res) => {
-          if (alive) {
-            setItems(res.items)
-            setError(null)
-          }
+          if (!alive) return
+          setItems(res.items)
+          setError(null)
         })
         .catch((err) => {
-          if (alive) setError(err instanceof Error ? err.message : 'Failed to load history')
+          if (!alive) return
+          setError(err instanceof Error ? err.message : 'Failed to load history')
+        })
+        .finally(() => {
+          if (alive) setLoading(false)
         })
       return () => {
         alive = false
@@ -39,21 +44,9 @@ export default function HistoryScreen() {
       </Text>
       {error ? <Text style={{ marginTop: 12, color: colors.ball }}>{error}</Text> : null}
 
-      {items.length === 0 && !error ? (
-        <View
-          style={{
-            marginTop: 24,
-            borderWidth: 1,
-            borderStyle: 'dashed',
-            borderColor: colors.line,
-            borderRadius: 18,
-            padding: 28,
-            alignItems: 'center',
-            backgroundColor: 'rgba(255,255,255,0.6)',
-          }}
-        >
-          <Text style={{ color: colors.muted }}>No deliveries yet.</Text>
-        </View>
+      {loading ? <ListShimmer /> : null}
+      {!loading && items.length === 0 && !error ? (
+        <EmptyState title="No history" subtitle="No videos yet. Analyze a delivery to see it here." />
       ) : null}
 
       <View style={{ marginTop: 16, gap: 10 }}>

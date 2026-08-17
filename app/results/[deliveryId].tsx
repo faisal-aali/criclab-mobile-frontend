@@ -2,7 +2,7 @@ import * as Clipboard from 'expo-clipboard'
 import * as WebBrowser from 'expo-web-browser'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, Pressable, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 import {
   assetUrl,
   getDelivery,
@@ -14,6 +14,7 @@ import {
 import { ClipPlayer } from '../../src/components/ClipPlayer'
 import { MetricCard } from '../../src/components/MetricCard'
 import { Screen } from '../../src/components/Screen'
+import { EmptyState, ResultsShimmer } from '../../src/shimmer'
 import { colors } from '../../src/theme'
 
 function ReliabilityBanner({ data }: { data: Delivery }) {
@@ -139,11 +140,15 @@ export default function ResultsScreen() {
   const [originalSrc, setOriginalSrc] = useState('')
   const [pdfHref, setPdfHref] = useState('')
   const [copied, setCopied] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!deliveryId) return
+    let alive = true
+    setLoading(true)
     getDelivery(deliveryId)
       .then(async (d) => {
+        if (!alive) return
         setData(d)
         const artifacts = d.artifacts || {}
         const cloud = artifacts.cloudinary_video_url || ''
@@ -156,23 +161,36 @@ export default function ResultsScreen() {
         setOriginalSrc(original)
         setPdfHref(pdf)
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load'))
+      .catch((err) => {
+        if (!alive) return
+        setError(err instanceof Error ? err.message : 'Failed to load')
+      })
+      .finally(() => {
+        if (alive) setLoading(false)
+      })
+    return () => {
+      alive = false
+    }
   }, [deliveryId])
 
-  if (error) {
+  if (loading) {
     return (
       <Screen>
-        <Text style={{ color: colors.ball }}>{error}</Text>
+        <ResultsShimmer />
+      </Screen>
+    )
+  }
+  if (error && !data) {
+    return (
+      <Screen>
+        <EmptyState title="No videos" subtitle={error} />
       </Screen>
     )
   }
   if (!data) {
     return (
-      <Screen scroll={false}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-          <ActivityIndicator color={colors.pitch} />
-          <Text style={{ color: colors.muted }}>Loading results…</Text>
-        </View>
+      <Screen>
+        <EmptyState title="No history" subtitle="This delivery could not be found." />
       </Screen>
     )
   }

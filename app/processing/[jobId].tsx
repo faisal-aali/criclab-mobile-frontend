@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { ActivityIndicator, Text, View } from 'react-native'
 import { getJob, type Job } from '../../src/api/client'
 import { Screen } from '../../src/components/Screen'
+import { ProcessingShimmer } from '../../src/shimmer'
 import { colors } from '../../src/theme'
 
 const STAGES = [
@@ -71,6 +72,10 @@ export default function ProcessingScreen() {
         Pose on a long clip can take several minutes. Keep this screen open.
       </Text>
 
+      {!job && !error ? (
+        <ProcessingShimmer rows={9} />
+      ) : (
+        <>
       <View style={{ marginTop: 22, height: 10, borderRadius: 999, backgroundColor: colors.line, overflow: 'hidden' }}>
         <View
           style={{
@@ -115,6 +120,8 @@ export default function ProcessingScreen() {
           )
         })}
       </View>
+        </>
+      )}
 
       {error ? (
         <View style={{ marginTop: 20, backgroundColor: colors.roseBg, borderRadius: 14, padding: 14 }}>

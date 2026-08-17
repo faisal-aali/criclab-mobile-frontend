@@ -5,12 +5,14 @@ import { listBalltrackSessions } from '../../src/balltrack/api'
 import type { BallTrackSession } from '../../src/balltrack/types'
 import { Logo } from '../../src/components/Logo'
 import { Screen } from '../../src/components/Screen'
+import { EmptyState, ListShimmer } from '../../src/shimmer'
 import { colors } from '../../src/theme'
 
 export default function BallTrackHub() {
   const router = useRouter()
   const [items, setItems] = useState<BallTrackSession[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useFocusEffect(
     useCallback(() => {
@@ -24,6 +26,9 @@ export default function BallTrackHub() {
         .catch((err) => {
           if (!alive) return
           setError(err instanceof Error ? err.message : 'Could not load sessions')
+        })
+        .finally(() => {
+          if (alive) setLoading(false)
         })
       return () => {
         alive = false
@@ -57,8 +62,7 @@ export default function BallTrackHub() {
       >
         <Text style={{ fontWeight: '800', color: colors.pitch }}>Setup (same as Fulltrack)</Text>
         <Text style={{ marginTop: 6, color: colors.muted, lineHeight: 20 }}>
-          22-yard pitch · two sets of three stumps · tripod ~1.5 m high · 4 m behind the bowler · tilt the phone down
-          · do not block the ball after release.
+          20.12 m pitch · two sets of three stumps · tripod ~1.5 m high · 4 m behind the bowler · drag the red boxes onto both wickets so the blue path sits on the turf.
         </Text>
       </View>
 
@@ -77,20 +81,9 @@ export default function BallTrackHub() {
 
       <Text style={{ marginTop: 28, fontSize: 20, fontWeight: '800', color: colors.pitch }}>History</Text>
       {error ? <Text style={{ marginTop: 10, color: colors.ball }}>{error}</Text> : null}
-      {items.length === 0 && !error ? (
-        <View
-          style={{
-            marginTop: 14,
-            borderWidth: 1,
-            borderStyle: 'dashed',
-            borderColor: colors.line,
-            borderRadius: 18,
-            padding: 24,
-            alignItems: 'center',
-          }}
-        >
-          <Text style={{ color: colors.muted }}>No sessions yet.</Text>
-        </View>
+      {loading ? <ListShimmer rows={3} /> : null}
+      {!loading && items.length === 0 && !error ? (
+        <EmptyState title="No history" subtitle="No videos yet. Start a session to track balls." />
       ) : null}
 
       <View style={{ marginTop: 12, gap: 10 }}>
