@@ -8,12 +8,13 @@
     "userInterfaceStyle": "light",
     "scheme": "criclabai",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0B3D2E"
     },
     "ios": {
       "supportsTablet": true,
+      "icon": "./assets/icon.png",
       "infoPlist": {
         "NSCameraUsageDescription": "Cric-Lab AI records a bowling delivery for pose analysis.",
         "NSMicrophoneUsageDescription": "Microphone is used when you record a bowling clip.",
@@ -24,6 +25,7 @@
       }
     },
     "android": {
+      "icon": "./assets/icon.png",
       "adaptiveIcon": {
         "backgroundColor": "#0B3D2E",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -46,7 +48,15 @@
       "expo-router",
       "expo-web-browser",
       "expo-video",
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B3D2E",
+          "image": "./assets/icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain"
+        }
+      ],
       [
         "expo-image-picker",
         {
