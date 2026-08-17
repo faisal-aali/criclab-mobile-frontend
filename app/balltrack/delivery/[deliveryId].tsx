@@ -2,6 +2,7 @@ import { useLocalSearchParams } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Text, View } from 'react-native'
 import { balltrackAssetUrl, getBalltrackDelivery } from '../../../src/balltrack/api'
+import { BallTrackHud } from '../../../src/balltrack/Hud'
 import type { BallTrackDelivery } from '../../../src/balltrack/types'
 import { ClipPlayer } from '../../../src/components/ClipPlayer'
 import { MetricCard } from '../../../src/components/MetricCard'
@@ -54,7 +55,18 @@ export default function BallTrackDeliveryScreen() {
           {error ? <Text style={{ marginTop: 12, color: colors.ball }}>{error}</Text> : null}
           {clip ? (
             <View style={{ marginTop: 16 }}>
-              <ClipPlayer uri={clip} label="Tracked clip" />
+              <ClipPlayer
+                uri={clip}
+                label="Tracked clip"
+                aspectRatio={9 / 16}
+                overlay={
+                  <BallTrackHud
+                    speed={data.metrics?.speed_kmh}
+                    length={data.metrics?.length_m}
+                    line={data.metrics?.line_m}
+                  />
+                }
+              />
             </View>
           ) : (
             <EmptyState title="No videos" subtitle="This delivery has no clip yet." />
@@ -65,7 +77,7 @@ export default function BallTrackDeliveryScreen() {
             <MetricCard label="Line" metric={data.metrics?.line_m} />
           </View>
           <Text style={{ marginTop: 16, color: colors.muted, lineHeight: 20 }}>
-            Speed, line, and length only. Spin and swing are not measured in this version.
+            Speed, line, and length are measured. Spin and swing stay “—” until we can read the seam and the in-air path.
           </Text>
         </>
       ) : null}

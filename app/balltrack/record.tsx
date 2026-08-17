@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router'
 import { useRef, useState } from 'react'
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { uploadSession } from '../../src/balltrack/api'
+import { detectStumps, uploadSession } from '../../src/balltrack/api'
 import { DraggableStumpBox, PitchOverlay } from '../../src/balltrack/pitchGuide'
 import { BATTER_BOX, BOWLER_BOX, type Box } from '../../src/balltrack/types'
 import { colors } from '../../src/theme'
@@ -19,9 +19,44 @@ export default function BallTrackRecord() {
   const [phase, setPhase] = useState<Phase>('align')
   const [recording, setRecording] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [finding, setFinding] = useState(false)
+  const [hintBowler, setHintBowler] = useState<Box>(BOWLER_BOX)
+  const [hintBatter, setHintBatter] = useState<Box>(BATTER_BOX)
   const [bowler, setBowler] = useState<Box>(BOWLER_BOX)
   const [batter, setBatter] = useState<Box>(BATTER_BOX)
   const [layout, setLayout] = useState({ w: 0, h: 0 })
+
+  async function findStumps() {
+    if (!permission?.granted) {
+      const next = await requestPermission()
+      if (!next.granted) {
+        Alert.alert('Camera needed', 'Ball Track films down the pitch from this phone.')
+        return
+      }
+    }
+    setFinding(true)
+    try {
+      const shot = await cameraRef.current?.takePictureAsync({ quality: 0.7, shutterSound: false })
+      if (!shot?.uri) {
+        Alert.alert('No frame', 'Could not capture the camera frame.')
+        return
+      }
+      const found = await detectStumps({ uri: shot.uri, bowler: hintBowler, batter: hintBatter })
+      setBowler(found.bowler)
+      setBatter(found.batter)
+      setPhase('armed')
+    } catch (err) {
+      setPhase('align')
+      Alert.alert(
+        'Stumps not found',
+        err instanceof Error
+          ? err.message
+          : 'Fit both wicket sets in the red boxes and try Continue again.',
+      )
+    } finally {
+      setFinding(false)
+    }
+  }
 
   async function toggleRecord() {
     if (!permission?.granted) {
@@ -58,15 +93,16 @@ export default function BallTrackRecord() {
   if (!permission) return <View style={styles.fill} />
 
   return (
-    <View style={styles.fill} onLayout={(e) => setLayout(e.nativeEvent.layout)}>
+    <View style={styles.fill} onLayout={(e) => setLayout({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
       {permission.granted ? (
         <CameraView
           ref={cameraRef}
           style={StyleSheet.absoluteFill}
           facing="back"
-          mode="video"
+          mode={phase === 'armed' ? 'video' : 'picture'}
           mute
           videoQuality="720p"
+          pointerEvents="none"
         />
       ) : (
         <View style={[styles.fill, { backgroundColor: colors.pitchDeep, alignItems: 'center', justifyContent: 'center' }]}>
@@ -79,29 +115,31 @@ export default function BallTrackRecord() {
       {recording ? <View pointerEvents="none" style={styles.recordingFrame} /> : null}
 
       {phase === 'align' ? (
-        <>
-          <DraggableStumpBox box={batter} label="Striker stumps" onChange={setBatter} layout={layout} />
-          <DraggableStumpBox box={bowler} label="Non-Striker stumps" onChange={setBowler} layout={layout} />
-        </>
+        <View pointerEvents="box-none" style={[StyleSheet.absoluteFill, { zIndex: 10 }]}>
+          <DraggableStumpBox box={hintBatter} label="Striker stumps" onChange={setHintBatter} layout={layout} />
+          <DraggableStumpBox box={hintBowler} label="Non-Striker stumps" onChange={setHintBowler} layout={layout} />
+        </View>
       ) : (
         <PitchOverlay bowler={bowler} batter={batter} />
       )}
 
-      <View style={{ position: 'absolute', top: insets.top + 8, left: 12, right: 12, flexDirection: 'row', alignItems: 'flex-start', zIndex: 2 }}>
+      <View style={{ position: 'absolute', top: insets.top + 8, left: 12, right: 12, flexDirection: 'row', alignItems: 'flex-start', zIndex: 12 }}>
         {phase === 'armed' ? (
-          <Pressable onPress={() => setPhase('align')} style={styles.pill}>
-            <Text style={styles.pillText}>Redetect</Text>
+          <Pressable onPress={() => setPhase('align')} disabled={recording || finding} style={styles.pill}>
+            <Text style={styles.pillText}>Resize</Text>
           </Pressable>
         ) : (
-          <View style={{ width: 88 }} />
+          <View style={{ width: 72 }} />
         )}
         <View style={styles.banner}>
           <Text style={styles.bannerText}>
-            {phase === 'align'
-              ? 'Drag each red box onto the real stumps. Use the red dot to resize, then Continue.'
-              : recording
-                ? 'Recording… bowl as usual, then stop when the session is done.'
-                : "Virtual stumps should sit on the real ones. Press Redetect if they don't line up, then record."}
+            {finding
+              ? 'Finding the wickets and drawing the pitch line…'
+              : phase === 'align'
+                ? 'Resize the boxes so both stump sets are inside, then Continue. The lab finds the wickets and draws the line between them.'
+                : recording
+                  ? 'Recording… bowl as usual, then stop when the session is done.'
+                  : 'Resize if the boxes missed the stumps, then Continue again.'}
           </Text>
         </View>
         <Pressable onPress={() => router.back()} style={styles.closeBtn} hitSlop={12}>
@@ -109,15 +147,15 @@ export default function BallTrackRecord() {
         </Pressable>
       </View>
 
-      <View style={{ position: 'absolute', bottom: insets.bottom + 24, left: 20, right: 20, zIndex: 2 }}>
+      <View style={{ position: 'absolute', bottom: insets.bottom + 24, left: 20, right: 20, zIndex: 12 }}>
         {phase === 'align' ? (
-          <Pressable onPress={() => setPhase('armed')} style={styles.primary}>
-            <Text style={styles.primaryText}>Continue</Text>
+          <Pressable onPress={findStumps} disabled={finding} style={[styles.primary, { opacity: finding ? 0.6 : 1 }]}>
+            <Text style={styles.primaryText}>{finding ? 'Finding stumps…' : 'Continue'}</Text>
           </Pressable>
         ) : (
           <Pressable
             onPress={toggleRecord}
-            disabled={busy}
+            disabled={busy || finding}
             style={[styles.primary, { backgroundColor: recording ? '#E11D2A' : '#fff', opacity: busy ? 0.6 : 1 }]}
           >
             <Text style={[styles.primaryText, { color: recording ? '#fff' : colors.pitch }]}>

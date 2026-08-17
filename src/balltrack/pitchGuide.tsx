@@ -1,21 +1,20 @@
-import { useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
-import { Gesture, GestureDetector } from 'react-native-gesture-handler'
-import { runOnJS } from 'react-native-reanimated'
+import { useRef, useState } from 'react'
+import { PanResponder, StyleSheet, Text, View } from 'react-native'
 import Svg, { Defs, Line, LinearGradient, Polygon, Rect, Stop } from 'react-native-svg'
 import type { Box } from './types'
 
 const PITCH_LENGTH_M = 20.12
 const CREASE_M = 1.22
+const HANDLE = 28
 
 function clampBox(box: Box): Box {
-  const w = Math.min(0.72, Math.max(0.06, box.w))
-  const h = Math.min(0.4, Math.max(0.05, box.h))
+  const w = Math.min(0.85, Math.max(0.05, box.w))
+  const h = Math.min(0.5, Math.max(0.05, box.h))
   return {
     w,
     h,
     x: Math.min(1 - w, Math.max(0, box.x)),
-    y: Math.min(1 - h, Math.max(0.04, box.y)),
+    y: Math.min(1 - h, Math.max(0.02, box.y)),
   }
 }
 
@@ -39,21 +38,18 @@ function WicketSet({
     const left = x + i * (postW + gap)
     const topW = postW * 0.78
     const inset = (postW - topW) / 2
-    return {
-      points: [
-        `${left},${baseY}`,
-        `${left + postW},${baseY}`,
-        `${left + postW - inset},${topY + bailH}`,
-        `${left + inset},${topY + bailH}`,
-      ].join(' '),
-      bailX: left,
-    }
+    return [
+      `${left},${baseY}`,
+      `${left + postW},${baseY}`,
+      `${left + postW - inset},${topY + bailH}`,
+      `${left + inset},${topY + bailH}`,
+    ].join(' ')
   })
   const bailY = topY + bailH * 0.15
   return (
     <>
-      {posts.map((p, i) => (
-        <Polygon key={i} points={p.points} fill="#F5D76E" stroke="#B8860B" strokeWidth={1.2} />
+      {posts.map((points, i) => (
+        <Polygon key={i} points={points} fill="#F5D76E" stroke="#B8860B" strokeWidth={1.2} />
       ))}
       <Rect x={x} y={bailY} width={w} height={bailH * 0.7} rx={1.2} fill="#E8C547" stroke="#8B6914" strokeWidth={0.8} />
       <Rect
@@ -71,7 +67,7 @@ function WicketSet({
 export function PitchOverlay({ bowler, batter }: { bowler: Box; batter: Box }) {
   const [size, setSize] = useState({ w: 0, h: 0 })
   if (!size.w) {
-    return <View pointerEvents="none" style={StyleSheet.absoluteFill} onLayout={(e) => setSize(e.nativeEvent.layout)} />
+    return <View pointerEvents="none" style={StyleSheet.absoluteFill} onLayout={(e) => setSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })} />
   }
 
   const nearL = bowler.x * size.w
@@ -80,9 +76,7 @@ export function PitchOverlay({ bowler, batter }: { bowler: Box; batter: Box }) {
   const farL = batter.x * size.w
   const farR = (batter.x + batter.w) * size.w
   const farBase = (batter.y + batter.h) * size.h
-
   const quad = `${nearL},${nearBase} ${nearR},${nearBase} ${farR},${farBase} ${farL},${farBase}`
-
   const creaseT = CREASE_M / PITCH_LENGTH_M
   const lerp = (a: number, b: number, t: number) => a + (b - a) * t
   const nearCrease = {
@@ -99,11 +93,7 @@ export function PitchOverlay({ bowler, batter }: { bowler: Box; batter: Box }) {
   }
 
   return (
-    <View
-      pointerEvents="none"
-      style={StyleSheet.absoluteFill}
-      onLayout={(e) => setSize(e.nativeEvent.layout)}
-    >
+    <View pointerEvents="none" style={StyleSheet.absoluteFill} onLayout={(e) => setSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
       <Svg width={size.w} height={size.h}>
         <Defs>
           <LinearGradient id="pitchFade" x1="0" y1="1" x2="0" y2="0">
@@ -130,7 +120,7 @@ export function PitchOverlay({ bowler, batter }: { bowler: Box; batter: Box }) {
   )
 }
 
-export function DraggableStumpBox({
+export function ResizableStumpBox({
   box,
   label,
   onChange,
@@ -141,46 +131,83 @@ export function DraggableStumpBox({
   onChange: (box: Box) => void
   layout: { w: number; h: number }
 }) {
-  const pan = Gesture.Pan().onChange((e) => {
-    if (!layout.w) return
-    runOnJS(onChange)(
-      clampBox({
-        ...box,
-        x: box.x + e.changeX / layout.w,
-        y: box.y + e.changeY / layout.h,
-      }),
-    )
-  })
-  const resize = Gesture.Pan().onChange((e) => {
-    if (!layout.w) return
-    runOnJS(onChange)(
-      clampBox({
-        ...box,
-        w: box.w + e.changeX / layout.w,
-        h: box.h + e.changeY / layout.h,
-      }),
-    )
-  })
+  const start = useRef(box)
+  const boxRef = useRef(box)
+  const layoutRef = useRef(layout)
+  boxRef.current = box
+  layoutRef.current = layout
+
+  function makeCorner(kind: 'nw' | 'ne' | 'sw' | 'se') {
+    return PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        start.current = boxRef.current
+      },
+      onPanResponderMove: (_, g) => {
+        const s = start.current
+        const lw = layoutRef.current.w || 1
+        const lh = layoutRef.current.h || 1
+        const dx = g.dx / lw
+        const dy = g.dy / lh
+        const cx = s.x + s.w / 2
+        const cy = s.y + s.h / 2
+        let nextW = s.w
+        let nextH = s.h
+        if (kind === 'se' || kind === 'ne') nextW = s.w + dx
+        if (kind === 'sw' || kind === 'nw') nextW = s.w - dx
+        if (kind === 'se' || kind === 'sw') nextH = s.h + dy
+        if (kind === 'ne' || kind === 'nw') nextH = s.h - dy
+        onChange(clampBox({ w: nextW, h: nextH, x: cx - nextW / 2, y: cy - nextH / 2 }))
+      },
+    })
+  }
+
+  const nw = useRef(makeCorner('nw')).current
+  const ne = useRef(makeCorner('ne')).current
+  const sw = useRef(makeCorner('sw')).current
+  const se = useRef(makeCorner('se')).current
+
+  const handle = {
+    position: 'absolute' as const,
+    width: HANDLE,
+    height: HANDLE,
+    borderRadius: 6,
+    backgroundColor: '#E11D2A',
+    borderWidth: 2,
+    borderColor: '#fff',
+    zIndex: 6,
+  }
 
   return (
-    <GestureDetector gesture={pan}>
+    <View
+      pointerEvents="box-none"
+      style={{
+        position: 'absolute',
+        left: `${box.x * 100}%`,
+        top: `${box.y * 100}%`,
+        width: `${box.w * 100}%`,
+        height: `${box.h * 100}%`,
+        zIndex: 8,
+      }}
+    >
       <View
+        pointerEvents="none"
         style={{
-          position: 'absolute',
-          left: `${box.x * 100}%`,
-          top: `${box.y * 100}%`,
-          width: `${box.w * 100}%`,
-          height: `${box.h * 100}%`,
+          flex: 1,
           borderWidth: 2,
           borderColor: '#E11D2A',
           borderStyle: 'dashed',
           borderRadius: 4,
-          alignItems: 'center',
+          backgroundColor: 'rgba(225,29,42,0.10)',
         }}
       >
         <Text
           style={{
-            marginTop: -20,
+            position: 'absolute',
+            top: -22,
+            left: 0,
+            right: 0,
+            textAlign: 'center',
             color: '#E11D2A',
             fontSize: 12,
             fontWeight: '800',
@@ -188,24 +215,15 @@ export function DraggableStumpBox({
         >
           {label}
         </Text>
-        <GestureDetector gesture={resize}>
-          <View
-            style={{
-              position: 'absolute',
-              right: -8,
-              bottom: -8,
-              width: 22,
-              height: 22,
-              borderRadius: 11,
-              backgroundColor: '#E11D2A',
-              borderWidth: 2,
-              borderColor: '#fff',
-            }}
-          />
-        </GestureDetector>
       </View>
-    </GestureDetector>
+      <View {...nw.panHandlers} style={[handle, { top: -HANDLE / 2, left: -HANDLE / 2 }]} />
+      <View {...ne.panHandlers} style={[handle, { top: -HANDLE / 2, right: -HANDLE / 2 }]} />
+      <View {...sw.panHandlers} style={[handle, { bottom: -HANDLE / 2, left: -HANDLE / 2 }]} />
+      <View {...se.panHandlers} style={[handle, { bottom: -HANDLE / 2, right: -HANDLE / 2 }]} />
+    </View>
   )
 }
+
+export const DraggableStumpBox = ResizableStumpBox
 
 export { clampBox }

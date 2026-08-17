@@ -1,5 +1,5 @@
 import { getApiBase } from '../api/config'
-import type { BallTrackDelivery, BallTrackJob, BallTrackSession, Calibration } from './types'
+import type { BallTrackDelivery, BallTrackJob, BallTrackSession, Box, Calibration } from './types'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const base = await getApiBase()
@@ -60,4 +60,25 @@ export function getBalltrackSession(id: string) {
 
 export function getBalltrackDelivery(id: string) {
   return request<BallTrackDelivery>(`/balltrack/deliveries/${id}`)
+}
+
+export function detectStumps(input: { uri: string; bowler: Box; batter: Box }) {
+  const form = new FormData()
+  form.append('file', {
+    uri: input.uri,
+    name: 'frame.jpg',
+    type: 'image/jpeg',
+  } as unknown as Blob)
+  form.append('hints', JSON.stringify({ bowler: input.bowler, batter: input.batter }))
+  return request<{
+    bowler: Box
+    batter: Box
+    found: boolean
+    pitch_length_m?: number
+    confidence?: { bowler: number; batter: number }
+  }>('/balltrack/detect-stumps', {
+    method: 'POST',
+    body: form,
+    headers: { Accept: 'application/json' },
+  })
 }

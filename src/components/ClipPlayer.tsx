@@ -1,8 +1,19 @@
+import type { ReactNode } from 'react'
 import { useVideoPlayer, VideoView } from 'expo-video'
 import { Text, View } from 'react-native'
 import { colors } from '../theme'
 
-export function ClipPlayer({ uri, label }: { uri: string; label: string }) {
+export function ClipPlayer({
+  uri,
+  label,
+  aspectRatio = 16 / 9,
+  overlay,
+}: {
+  uri: string
+  label: string
+  aspectRatio?: number
+  overlay?: ReactNode
+}) {
   const player = useVideoPlayer(uri, (p) => {
     p.loop = false
   })
@@ -32,12 +43,15 @@ export function ClipPlayer({ uri, label }: { uri: string; label: string }) {
         </Text>
         <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10, fontWeight: '700' }}>CRIC-LAB AI</Text>
       </View>
-      <VideoView
-        player={player}
-        style={{ width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' }}
-        nativeControls
-        contentFit="contain"
-      />
+      <View>
+        <VideoView
+          player={player}
+          style={{ width: '100%', aspectRatio, backgroundColor: '#000' }}
+          nativeControls
+          contentFit="contain"
+        />
+        {overlay ? <View pointerEvents="none" style={{ position: 'absolute', top: 12, left: 12 }}>{overlay}</View> : null}
+      </View>
     </View>
   )
 }

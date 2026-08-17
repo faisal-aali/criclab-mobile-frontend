@@ -68,7 +68,7 @@ export default function BallTrackSessionScreen() {
 
           {overlayUrl ? (
             <View style={{ marginTop: 16 }}>
-              <ClipPlayer uri={overlayUrl} label="Session overlay" />
+              <ClipPlayer uri={overlayUrl} label="Session overlay" aspectRatio={9 / 16} />
             </View>
           ) : null}
 

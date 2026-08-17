@@ -62,7 +62,7 @@ export default function BallTrackHub() {
       >
         <Text style={{ fontWeight: '800', color: colors.pitch }}>Setup (same as Fulltrack)</Text>
         <Text style={{ marginTop: 6, color: colors.muted, lineHeight: 20 }}>
-          20.12 m pitch · two sets of three stumps · tripod ~1.5 m high · 4 m behind the bowler · drag the red boxes onto both wickets so the blue path sits on the turf.
+          20.12 m pitch · two sets of three stumps · tripod ~1.5 m high · 4 m behind the bowler · fit both wickets in the red boxes, then Continue so the lab can find them and draw the pitch line.
         </Text>
       </View>
 

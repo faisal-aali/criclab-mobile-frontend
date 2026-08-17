@@ -60,5 +60,5 @@ export type BallTrackSession = {
 
 /** Near (non-striker) stumps — large, low in the frame. */
 export const BOWLER_BOX: Box = { x: 0.26, y: 0.70, w: 0.48, h: 0.18 }
-/** Far (striker) stumps — small, because they sit 20.12 m away. */
-export const BATTER_BOX: Box = { x: 0.42, y: 0.11, w: 0.16, h: 0.10 }
+/** Far (striker) stumps — a bit larger so they are easier to fit in frame. */
+export const BATTER_BOX: Box = { x: 0.36, y: 0.07, w: 0.28, h: 0.16 }
