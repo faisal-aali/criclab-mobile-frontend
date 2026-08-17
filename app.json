@@ -1,25 +1,63 @@
 {
   "expo": {
-    "name": "cric-lab-ai",
+    "name": "Cric-Lab AI",
     "slug": "cric-lab-ai",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "scheme": "criclabai",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B3D2E"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Cric-Lab AI records a bowling delivery for pose analysis.",
+        "NSMicrophoneUsageDescription": "Microphone is used when you record a bowling clip.",
+        "NSPhotoLibraryUsageDescription": "Choose a bowling video from your library to analyze.",
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0B3D2E",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "READ_MEDIA_VIDEO"
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sharing",
+      "expo-web-browser",
+      "expo-video",
+      "expo-splash-screen",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Choose a bowling video from your library to analyze.",
+          "cameraPermission": "Cric-Lab AI records a bowling delivery for pose analysis.",
+          "microphonePermission": "Microphone is used when you record a bowling clip."
+        }
+      ]
+    ],
+    "extra": {
+      "apiBase": "http://127.0.0.1:8000"
     }
   }
 }

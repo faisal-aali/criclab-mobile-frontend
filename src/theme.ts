@@ -1,0 +1,18 @@
+export const colors = {
+  pitch: '#0B3D2E',
+  pitchDeep: '#06261C',
+  crease: '#E8F5E9',
+  seam: '#C45C26',
+  ball: '#B91C1C',
+  ink: '#14201B',
+  mist: '#EDF3EF',
+  white: '#FFFFFF',
+  muted: 'rgba(20,32,27,0.55)',
+  line: 'rgba(11,61,46,0.12)',
+  amber: '#B45309',
+  amberBg: '#FFFBEB',
+  rose: '#9F1239',
+  roseBg: '#FFF1F2',
+  emerald: '#047857',
+  emeraldBg: '#ECFDF5',
+} as const
