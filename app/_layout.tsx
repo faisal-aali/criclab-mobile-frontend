@@ -31,6 +31,10 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="processing/[jobId]" options={{ title: 'Analyzing', headerBackTitle: 'Back' }} />
         <Stack.Screen name="results/[deliveryId]" options={{ title: 'Results', headerBackTitle: 'Back' }} />
+        <Stack.Screen name="balltrack/record" options={{ headerShown: false, title: 'Record' }} />
+        <Stack.Screen name="balltrack/processing/[jobId]" options={{ title: 'Tracking', headerBackTitle: 'Back' }} />
+        <Stack.Screen name="balltrack/session/[sessionId]" options={{ title: 'Session', headerBackTitle: 'Back' }} />
+        <Stack.Screen name="balltrack/delivery/[deliveryId]" options={{ title: 'Ball', headerBackTitle: 'Back' }} />
       </Stack>
       {showSplash ? <BrandSplash onFinish={hideSplash} /> : null}
     </GestureHandlerRootView>

@@ -37,6 +37,15 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="balltrack"
+        options={{
+          title: 'Ball Track',
+          tabBarIcon: ({ color, focused, size }) => (
+            <Ionicons name={focused ? 'locate' : 'locate-outline'} size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',

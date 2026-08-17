@@ -16,7 +16,7 @@
       "supportsTablet": true,
       "icon": "./assets/icon.png",
       "infoPlist": {
-        "NSCameraUsageDescription": "Cric-Lab AI records a bowling delivery for pose analysis.",
+        "NSCameraUsageDescription": "Cric-Lab AI records bowling video for pose analysis and ball tracking.",
         "NSMicrophoneUsageDescription": "Microphone is used when you record a bowling clip.",
         "NSPhotoLibraryUsageDescription": "Choose a bowling video from your library to analyze.",
         "NSAppTransportSecurity": {
@@ -48,6 +48,14 @@
       "expo-router",
       "expo-web-browser",
       "expo-video",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Cric-Lab AI records a bowling session for ball tracking.",
+          "microphonePermission": "Microphone is used when you record a bowling session.",
+          "recordAudioAndroid": true
+        }
+      ],
       [
         "expo-splash-screen",
         {
