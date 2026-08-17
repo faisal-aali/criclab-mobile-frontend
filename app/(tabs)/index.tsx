@@ -1,73 +1,42 @@
 import * as ImagePicker from 'expo-image-picker'
-import { useRouter } from 'expo-router'
-import { useEffect, useMemo, useState } from 'react'
+import { useFocusEffect, useRouter } from 'expo-router'
+import { useCallback, useState } from 'react'
 import { Alert, Pressable, Text, TextInput, View } from 'react-native'
 import { uploadVideo, type PickedVideo } from '../../src/api/client'
-import { ChoiceRow, FieldLabel } from '../../src/components/ChoiceRow'
+import { FieldLabel, fieldInputStyle } from '../../src/components/ChoiceRow'
 import { ClipPlayer } from '../../src/components/ClipPlayer'
 import { Logo } from '../../src/components/Logo'
 import { Screen } from '../../src/components/Screen'
-import { loadProfile, saveProfile, type SavedProfile } from '../../src/storage/profile'
+import {
+  emptyProfile,
+  heightMeters,
+  isProfileReady,
+  loadProfile,
+  profileBlockers,
+  profileInitials,
+  type SavedProfile,
+} from '../../src/storage/profile'
 import { colors } from '../../src/theme'
-
-const inputStyle = {
-  marginTop: 6,
-  borderWidth: 1,
-  borderColor: colors.line,
-  backgroundColor: colors.white,
-  borderRadius: 12,
-  paddingHorizontal: 12,
-  paddingVertical: 12,
-  fontSize: 16,
-  color: colors.ink,
-} as const
 
 export default function AnalyzeScreen() {
   const router = useRouter()
-  const [profile, setProfile] = useState<SavedProfile>({
-    firstName: '',
-    lastName: '',
-    dob: '',
-    heightFt: '',
-    heightIn: '',
-    weightLbs: '',
-    bowlingArm: '',
-    bowlingStyle: '',
-  })
+  const [profile, setProfile] = useState<SavedProfile>(emptyProfile)
   const [video, setVideo] = useState<PickedVideo | null>(null)
   const [metersPerPixel, setMetersPerPixel] = useState('')
   const [busy, setBusy] = useState(false)
 
-  useEffect(() => {
-    loadProfile().then(setProfile)
-  }, [])
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile().then(setProfile)
+    }, []),
+  )
 
-  const heightM = useMemo(() => {
-    const ft = Number(profile.heightFt)
-    const inch = Number(profile.heightIn)
-    const m = (Number.isNaN(ft) ? 0 : ft) * 0.3048 + (Number.isNaN(inch) ? 0 : inch) * 0.0254
-    return m > 0 ? m : null
-  }, [profile.heightFt, profile.heightIn])
-
-  const inches = Number(profile.heightIn)
-  const inchesOk = profile.heightIn === '' || (!Number.isNaN(inches) && inches >= 0 && inches <= 11)
-
-  const blockers: string[] = []
-  if (!profile.firstName.trim()) blockers.push('first name')
-  if (!profile.lastName.trim()) blockers.push('last name')
-  if (!profile.dob.trim()) blockers.push('date of birth (YYYY-MM-DD)')
-  if (heightM == null) blockers.push('height')
-  else if (heightM < 1.2 || heightM > 2.3) blockers.push('a realistic height')
-  if (!inchesOk) blockers.push('inches 0–11')
-  if (!(Number(profile.weightLbs) >= 50 && Number(profile.weightLbs) <= 400)) blockers.push('weight in lbs')
-  if (profile.bowlingArm !== 'left' && profile.bowlingArm !== 'right') blockers.push('bowling arm')
-  if (!['pace', 'spin', 'medium'].includes(profile.bowlingStyle)) blockers.push('bowling style')
+  const heightM = heightMeters(profile)
+  const profileReady = isProfileReady(profile)
+  const blockers = [...profileBlockers(profile)]
   if (!video) blockers.push('a bowling video')
   const ready = blockers.length === 0
-
-  function setField<K extends keyof SavedProfile>(key: K, value: SavedProfile[K]) {
-    setProfile((p) => ({ ...p, [key]: value }))
-  }
+  const displayName = `${profile.firstName.trim()} ${profile.lastName.trim()}`.trim()
 
   async function pickVideo(fromCamera: boolean) {
     const perm = fromCamera
@@ -87,13 +56,19 @@ export default function AnalyzeScreen() {
   }
 
   async function onAnalyze() {
+    if (!profileReady) {
+      Alert.alert('Complete your profile', 'Add height, bowling arm, and the rest of your details on the Profile tab.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Open Profile', onPress: () => router.push('/profile') },
+      ])
+      return
+    }
     if (!video || !ready) {
       Alert.alert('Missing details', `Still needed: ${blockers.join(', ')}`)
       return
     }
     setBusy(true)
     try {
-      await saveProfile(profile)
       const res = await uploadVideo({
         video,
         playerName: `${profile.firstName.trim()} ${profile.lastName.trim()}`,
@@ -109,7 +84,7 @@ export default function AnalyzeScreen() {
       })
       router.push(`/processing/${res.job_id}`)
     } catch (err) {
-      Alert.alert('Upload failed', err instanceof Error ? err.message : 'Could not reach the Cric-Lab API. Check Settings.')
+      Alert.alert('Upload failed', err instanceof Error ? err.message : 'Could not reach the Cric-Lab API. Check Profile.')
     } finally {
       setBusy(false)
     }
@@ -125,8 +100,47 @@ export default function AnalyzeScreen() {
         Analyze every delivery
       </Text>
       <Text style={{ marginTop: 10, fontSize: 15, lineHeight: 22, color: colors.muted }}>
-        Height and bowling arm are required so we can scale pixels to metres and track the correct wrist.
+        Film a side-on clip. Your saved profile scales the delivery into metres and km/h.
       </Text>
+
+      <Pressable
+        onPress={() => router.push('/profile')}
+        style={{
+          marginTop: 16,
+          backgroundColor: colors.white,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: colors.line,
+          padding: 14,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+        }}
+      >
+        <View
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            backgroundColor: colors.pitch,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Text style={{ color: colors.white, fontWeight: '800' }}>{profileInitials(profile)}</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontWeight: '800', color: colors.pitch }}>{displayName || 'Set up your profile'}</Text>
+          <Text style={{ marginTop: 2, color: colors.muted, fontSize: 13 }}>
+            {profileReady
+              ? `${profile.bowlingArm === 'left' ? 'Left-arm' : 'Right-arm'} ${profile.bowlingStyle}${
+                  heightM ? ` · ${heightM.toFixed(2)} m` : ''
+                }`
+              : 'Tap to add height, arm, and bowling style'}
+          </Text>
+        </View>
+        <Text style={{ color: colors.seam, fontWeight: '800' }}>Edit</Text>
+      </Pressable>
 
       <View
         style={{
@@ -155,103 +169,9 @@ export default function AnalyzeScreen() {
           padding: 16,
         }}
       >
-        <Text style={{ fontSize: 20, fontWeight: '800', color: colors.pitch }}>Bowler profile</Text>
+        <Text style={{ fontSize: 20, fontWeight: '800', color: colors.pitch }}>Bowling video</Text>
 
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <View style={{ flex: 1 }}>
-            <FieldLabel>First name</FieldLabel>
-            <TextInput
-              style={inputStyle}
-              value={profile.firstName}
-              onChangeText={(v) => setField('firstName', v)}
-              autoCapitalize="words"
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <FieldLabel>Last name</FieldLabel>
-            <TextInput
-              style={inputStyle}
-              value={profile.lastName}
-              onChangeText={(v) => setField('lastName', v)}
-              autoCapitalize="words"
-            />
-          </View>
-        </View>
-
-        <FieldLabel>Date of birth (YYYY-MM-DD)</FieldLabel>
-        <TextInput
-          style={inputStyle}
-          value={profile.dob}
-          onChangeText={(v) => setField('dob', v)}
-          placeholder="1998-05-12"
-          placeholderTextColor={colors.muted}
-          autoCapitalize="none"
-        />
-
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <View style={{ flex: 1 }}>
-            <FieldLabel>Height (ft)</FieldLabel>
-            <TextInput
-              style={inputStyle}
-              value={profile.heightFt}
-              onChangeText={(v) => setField('heightFt', v)}
-              keyboardType="number-pad"
-              placeholder="5"
-              placeholderTextColor={colors.muted}
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <FieldLabel>Height (in)</FieldLabel>
-            <TextInput
-              style={inputStyle}
-              value={profile.heightIn}
-              onChangeText={(v) => setField('heightIn', v)}
-              keyboardType="number-pad"
-              placeholder="11"
-              placeholderTextColor={colors.muted}
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <FieldLabel>Weight (lbs)</FieldLabel>
-            <TextInput
-              style={inputStyle}
-              value={profile.weightLbs}
-              onChangeText={(v) => setField('weightLbs', v)}
-              keyboardType="decimal-pad"
-              placeholder="165"
-              placeholderTextColor={colors.muted}
-            />
-          </View>
-        </View>
-        {heightM ? (
-          <Text style={{ marginTop: 6, fontSize: 12, color: colors.muted }}>
-            {heightM.toFixed(2)} m — used to convert pixels into km/h
-          </Text>
-        ) : null}
-
-        <FieldLabel>Bowling arm</FieldLabel>
-        <ChoiceRow
-          value={profile.bowlingArm}
-          onChange={(v) => setField('bowlingArm', v)}
-          options={[
-            { label: 'Right-arm', value: 'right' },
-            { label: 'Left-arm', value: 'left' },
-          ]}
-        />
-
-        <FieldLabel>Bowling style</FieldLabel>
-        <ChoiceRow
-          value={profile.bowlingStyle}
-          onChange={(v) => setField('bowlingStyle', v)}
-          options={[
-            { label: 'Pace', value: 'pace' },
-            { label: 'Medium', value: 'medium' },
-            { label: 'Spin', value: 'spin' },
-          ]}
-        />
-
-        <FieldLabel>Bowling video</FieldLabel>
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
           <Pressable
             onPress={() => pickVideo(false)}
             style={{
@@ -288,7 +208,7 @@ export default function AnalyzeScreen() {
 
         <FieldLabel>Advanced scale (optional)</FieldLabel>
         <TextInput
-          style={inputStyle}
+          style={fieldInputStyle}
           value={metersPerPixel}
           onChangeText={setMetersPerPixel}
           placeholder="meters per pixel, e.g. 0.008"

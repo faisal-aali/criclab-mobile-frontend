@@ -2,7 +2,15 @@ import { getApiBase } from './config'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const base = await getApiBase()
-  const res = await fetch(`${base}${path}`, init)
+  let res: Response
+  try {
+    res = await fetch(`${base}${path}`, init)
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : 'Network request failed'
+    throw new Error(
+      `${reason} (${base}). On a phone use your Mac LAN IP and start FastAPI with --host 0.0.0.0`,
+    )
+  }
   if (!res.ok) {
     let detail = res.statusText
     try {

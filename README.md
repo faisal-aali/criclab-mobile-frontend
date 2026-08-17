@@ -4,9 +4,15 @@ Mobile client for the Cric-Lab bowling laboratory. Upload a side-on bowling clip
 
 This is a **separate repo** from the Python/React web lab. It does **not** run MediaPipe on the phone. It talks to the existing FastAPI backend.
 
+## Memory Bank (agents)
+
+Read `memory-bank/` before changing this app — especially `systemPatterns.md`.
+That folder is the product source of truth (bowling lab, honest metrics, Expo
+client vs Python pipeline). Cursor rules in `.cursor/rules/` point here.
+
 ## Stack
 
-- Expo SDK 57 + React Native
+- Expo SDK 54 + React Native (matches App Store Expo Go)
 - Expo Router (Analyze / History / Settings)
 - Same API as the web app: `POST /videos`, `GET /jobs/:id`, `GET /deliveries`
 

@@ -42,3 +42,15 @@ export function FieldLabel({ children }: { children: string }) {
     <Text style={{ fontSize: 13, fontWeight: '600', color: colors.pitch, marginTop: 14 }}>{children}</Text>
   )
 }
+
+export const fieldInputStyle = {
+  marginTop: 6,
+  borderWidth: 1,
+  borderColor: colors.line,
+  backgroundColor: colors.white,
+  borderRadius: 12,
+  paddingHorizontal: 12,
+  paddingVertical: 12,
+  fontSize: 16,
+  color: colors.ink,
+} as const

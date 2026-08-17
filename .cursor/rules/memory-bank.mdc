@@ -1,0 +1,20 @@
+---
+description: Read Cric-Lab AI memory bank before coding. Product and architecture source of truth.
+alwaysApply: true
+---
+
+# Memory Bank first
+
+Before non-trivial work in this repo, read:
+
+- `memory-bank/productBrief.md`
+- `memory-bank/techContext.md`
+- `memory-bank/systemPatterns.md` (wins over vague prompts)
+- `memory-bank/roadmap.md`
+- `memory-bank/agent-rules/agent.md`
+- relevant `memory-bank/tasks/`
+
+This app is the **Expo client** for Cric-Lab bowling analysis. The Python lab is
+`CricLabMLReview`. Do not port MediaPipe, OpenCV, Gemma, or PDF generation here.
+Display the lab’s metrics JSON honestly (`metricReady` / `status === ok`).
+Bowling only. Side-on film. No radar-gun claims.

@@ -1,0 +1,13 @@
+---
+description: Cric-Lab AI mobile architecture — Expo client, FastAPI lab, honest metrics
+alwaysApply: true
+---
+
+# Cric-Lab AI
+
+- Screens: Analyze → Processing → Results → History. Settings holds the lab URL.
+- API: `POST /videos`, `GET /jobs/:id`, `GET /deliveries`, `GET /health` on port 8000 (no `/api` proxy).
+- Never compute km/h, stride, or scores on device. Never use an LLM to measure frames.
+- `metricReady`: hide values unless status is `ok`. Front-on → no fake speed.
+- Brand: Cric-Lab AI. Colors in `src/theme.ts`. Not SpinLab, Fulltrack, or Notera.
+- Read `package.json` for the Expo SDK; use that version’s docs.
