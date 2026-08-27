@@ -86,15 +86,24 @@ Frontend gates are UX. The backend is the boundary.
 | `app/(auth)/signup.tsx` | Create account |
 | `app/(auth)/verify.tsx` | Email OTP |
 | `app/(auth)/forgot.tsx` | Password recovery |
-| `app/(tabs)/index.tsx` | Action — profile + pick/record video |
-| `app/(tabs)/balltrack.tsx` | Ball flight hub |
-| `app/(tabs)/history.tsx` | Past Action deliveries |
-| `app/(tabs)/train.tsx` | Drill library |
-| `app/(tabs)/profile.tsx` | Account, bowling profile, lab URL, leaderboard link |
-| `app/leaderboard.tsx` | Top measured Action throws |
+| `app/(drawer)/(tabs)/index.tsx` | Action — profile + pick/record video |
+| `app/(drawer)/(tabs)/balltrack.tsx` | Ball flight hub |
+| `app/(drawer)/(tabs)/history.tsx` | Past Action deliveries |
+| `app/(drawer)/(tabs)/train.tsx` | Drill library |
+| `app/(drawer)/(tabs)/profile.tsx` | Account, bowling profile, lab URL |
+| `app/(drawer)/leaderboard.tsx` | Top measured Action throws |
+| `app/(drawer)/tickets/*` | Support tickets (list, thread, reply) |
+| `app/(drawer)/notifications.tsx` | Lab notifications |
+| `app/(drawer)/coaching.tsx` | Book / cancel coaching sessions |
 | `app/processing/[jobId].tsx` | Poll Action job |
 | `app/results/[deliveryId].tsx` | Action report |
 | `app/balltrack/*` | Record, process, session, delivery |
+
+The side drawer (hamburger on the lab tabs) holds Leaderboard, Tickets,
+Notifications, and Coaching. Bottom tabs stay the film workflow: Action,
+Flight, History, Train, More. Analysis routes sit on the root stack so they
+cover the tabs; their back control must pop if possible and otherwise return
+to `/` (processing uses `replace` onto results, which can leave no history).
 
 Results must show: analyzed video, metric cards, scores, AI summary, PDF. Poll
 job status; never block without progress.
@@ -165,3 +174,4 @@ follow-through, ball visible in the air after it leaves the hand.
 7. Ball flight session flow
 8. Train drills + leaderboard
 9. Configurable API base + health check
+10. Side drawer: tickets, notifications, coaching

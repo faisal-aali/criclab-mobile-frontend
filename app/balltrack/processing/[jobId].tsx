@@ -54,7 +54,7 @@ export default function BallTrackProcessing() {
   const currentIdx = Math.max(0, STAGES.findIndex((s) => s.key === stageKey))
 
   return (
-    <Screen>
+    <Screen safeTop={false}>
       <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.seam }}>
         BALL TRACK
       </Text>

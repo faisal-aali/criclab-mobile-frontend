@@ -10,13 +10,13 @@ Expo React Native app. Display name **CricLab**. Folder
 | Layer | Technology | Purpose |
 |-------|------------|---------|
 | App | **Expo + React Native + TypeScript** | Phone / simulator client |
-| Nav | **Expo Router** | Auth stack + tabs (Action, Flight, History, Train, More) + analysis stacks |
+| Nav | **Expo Router** | Auth stack + drawer (Leaderboard, Tickets, Notifications, Coaching) + tabs (Action, Flight, History, Train, More) + analysis stacks |
 | Video pick | `expo-image-picker` | Library + camera, videos only |
 | Ball flight camera | `expo-camera` | Behind-bowler session film |
 | Playback | `expo-video` | Original + overlay clips |
 | Storage | `@react-native-async-storage/async-storage` | Refresh token, profile, API base |
 | PDF / links | `expo-web-browser`, `expo-clipboard` | Open report, copy Cloudinary URL |
-| Lab API | Fetch → FastAPI with Bearer | Auth, upload, jobs, deliveries, balltrack, drills, leaderboard |
+| Lab API | Fetch → FastAPI with Bearer | Auth, upload, jobs, deliveries, balltrack, drills, leaderboard, tickets, notifications, coaching |
 
 Read **this project's** `package.json` for the exact Expo SDK. Do not assume
 SDK from memory — use the installed version and
@@ -60,8 +60,12 @@ cric-lab-ai/
 ├── app/                      # Expo Router
 │   ├── _layout.tsx           # AuthProvider + root stack
 │   ├── (auth)/               # login, signup, verify, forgot
-│   ├── (tabs)/               # Action, Flight, History, Train, More
-│   ├── leaderboard.tsx
+│   ├── (drawer)/             # side menu + tabs
+│   │   ├── (tabs)/           # Action, Flight, History, Train, More
+│   │   ├── leaderboard.tsx
+│   │   ├── tickets/
+│   │   ├── notifications.tsx
+│   │   └── coaching.tsx
 │   ├── processing/[jobId].tsx
 │   ├── results/[deliveryId].tsx
 │   └── balltrack/            # record, processing, session, delivery
@@ -69,6 +73,9 @@ cric-lab-ai/
 │   ├── api/http.ts           # publicFetch + authFetch + refresh
 │   ├── api/auth.ts           # auth endpoints
 │   ├── api/client.ts         # videos, jobs, deliveries, drills, leaderboard
+│   ├── api/support.ts
+│   ├── api/notifications.ts
+│   ├── api/coaching.ts
 │   ├── api/config.ts         # API base URL
 │   ├── auth/AuthProvider.tsx
 │   ├── balltrack/api.ts

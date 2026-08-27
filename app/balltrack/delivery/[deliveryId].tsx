@@ -41,7 +41,7 @@ export default function BallTrackDeliveryScreen() {
   }, [deliveryId])
 
   return (
-    <Screen>
+    <Screen safeTop={false}>
       {loading ? <DeliveryShimmer /> : null}
       {!loading && error && !data ? (
         <EmptyState title="No videos" subtitle={error} />

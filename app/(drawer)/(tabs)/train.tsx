@@ -1,11 +1,11 @@
 import * as WebBrowser from 'expo-web-browser'
 import { useEffect, useMemo, useState } from 'react'
 import { Image, Pressable, Text, View } from 'react-native'
-import { listDrills, type DrillCatalogItem } from '../../src/api/client'
-import { Logo } from '../../src/components/Logo'
-import { Screen } from '../../src/components/Screen'
-import { EmptyState, ListShimmer } from '../../src/shimmer'
-import { colors } from '../../src/theme'
+import { listDrills, type DrillCatalogItem } from '../../../src/api/client'
+import { AppHeader } from '../../../src/components/AppHeader'
+import { Screen } from '../../../src/components/Screen'
+import { EmptyState, ListShimmer } from '../../../src/shimmer'
+import { colors } from '../../../src/theme'
 
 function label(tag: string) {
   return tag.replace(/_/g, ' ')
@@ -35,7 +35,7 @@ export default function TrainScreen() {
 
   return (
     <Screen>
-      <Logo />
+      <AppHeader />
       <Text style={{ marginTop: 18, fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>
         COACHING
       </Text>

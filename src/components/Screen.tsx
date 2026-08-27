@@ -7,9 +7,12 @@ import { colors } from '../theme'
 export function Screen({
   children,
   scroll = true,
+  safeTop = true,
 }: {
   children: ReactNode
   scroll?: boolean
+  /** False when a navigator header already accounts for the status bar. */
+  safeTop?: boolean
 }) {
   const inner = scroll ? (
     <ScrollView
@@ -25,7 +28,7 @@ export function Screen({
 
   return (
     <LinearGradient colors={[colors.night, colors.charcoal, '#080e10']} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+      <SafeAreaView style={{ flex: 1 }} edges={safeTop ? ['top'] : []}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}

@@ -1,12 +1,12 @@
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
-import { listBalltrackSessions } from '../../src/balltrack/api'
-import type { BallTrackSession } from '../../src/balltrack/types'
-import { Logo } from '../../src/components/Logo'
-import { Screen } from '../../src/components/Screen'
-import { EmptyState, ListShimmer } from '../../src/shimmer'
-import { colors } from '../../src/theme'
+import { listBalltrackSessions } from '../../../src/balltrack/api'
+import type { BallTrackSession } from '../../../src/balltrack/types'
+import { AppHeader } from '../../../src/components/AppHeader'
+import { Screen } from '../../../src/components/Screen'
+import { EmptyState, ListShimmer } from '../../../src/shimmer'
+import { colors } from '../../../src/theme'
 
 export default function BallTrackHub() {
   const router = useRouter()
@@ -39,7 +39,7 @@ export default function BallTrackHub() {
 
   return (
     <Screen>
-      <Logo />
+      <AppHeader />
       <Text style={{ marginTop: 18, fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>
         BALL FLIGHT
       </Text>

@@ -2,6 +2,7 @@ import * as Clipboard from 'expo-clipboard'
 import * as WebBrowser from 'expo-web-browser'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
+import { useFallbackBack } from '../../src/nav/back'
 import { Pressable, Text, View } from 'react-native'
 import {
   assetUrl,
@@ -134,6 +135,7 @@ function Section({ title, body }: { title: string; body?: string }) {
 export default function ResultsScreen() {
   const { deliveryId } = useLocalSearchParams<{ deliveryId: string }>()
   const router = useRouter()
+  useFallbackBack()
   const [data, setData] = useState<Delivery | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [processedSrc, setProcessedSrc] = useState('')
@@ -175,21 +177,21 @@ export default function ResultsScreen() {
 
   if (loading) {
     return (
-      <Screen>
+      <Screen safeTop={false}>
         <ResultsShimmer />
       </Screen>
     )
   }
   if (error && !data) {
     return (
-      <Screen>
+      <Screen safeTop={false}>
         <EmptyState title="No videos" subtitle={error} />
       </Screen>
     )
   }
   if (!data) {
     return (
-      <Screen>
+      <Screen safeTop={false}>
         <EmptyState title="No history" subtitle="This delivery could not be found." />
       </Screen>
     )
@@ -206,7 +208,7 @@ export default function ResultsScreen() {
   const cloudVideo = data.artifacts?.cloudinary_video_url
 
   return (
-    <Screen>
+    <Screen safeTop={false}>
       <Text style={{ fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.seam }}>ANALYSIS RESULTS</Text>
       <Text style={{ marginTop: 6, fontSize: 30, fontWeight: '800', color: colors.chalk }}>
         {data.player_name || 'Bowler'}
@@ -226,7 +228,7 @@ export default function ResultsScreen() {
 
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
         <Pressable
-          onPress={() => router.push('/')}
+          onPress={() => router.replace('/')}
           style={{
             flex: 1,
             borderWidth: 1,

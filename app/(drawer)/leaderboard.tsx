@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
-import { listLeaderboard, type LeaderboardRow } from '../src/api/client'
-import { Screen } from '../src/components/Screen'
-import { EmptyState, ListShimmer } from '../src/shimmer'
-import { colors } from '../src/theme'
+import { listLeaderboard, type LeaderboardRow } from '../../src/api/client'
+import { Screen } from '../../src/components/Screen'
+import { EmptyState, ListShimmer } from '../../src/shimmer'
+import { colors } from '../../src/theme'
 
 export default function LeaderboardScreen() {
   const router = useRouter()
@@ -20,7 +20,7 @@ export default function LeaderboardScreen() {
   }, [])
 
   return (
-    <Screen>
+    <Screen safeTop={false}>
       <Text style={{ fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>ACTION</Text>
       <Text style={{ marginTop: 8, fontSize: 30, fontWeight: '800', color: colors.chalk }}>Leaderboard</Text>
       <Text style={{ marginTop: 8, color: colors.muted, lineHeight: 22 }}>

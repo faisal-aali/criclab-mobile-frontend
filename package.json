@@ -5,6 +5,7 @@
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-navigation/drawer": "^7.13.10",
     "babel-preset-expo": "~54.0.10",
     "expo": "~54.0.37",
     "expo-camera": "~17.0.10",

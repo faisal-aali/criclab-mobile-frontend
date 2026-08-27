@@ -6,6 +6,7 @@ import { View } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { AuthProvider, useAuth } from '../src/auth/AuthProvider'
 import { BrandSplash } from '../src/components/BrandSplash'
+import { StackBackButton } from '../src/components/StackBackButton'
 import { colors } from '../src/theme'
 
 void SplashScreen.preventAutoHideAsync()
@@ -28,11 +29,17 @@ function AuthGate() {
       if (!inAuth || authScreen !== 'verify') router.replace('/(auth)/verify')
       return
     }
-    if (inAuth) router.replace('/(tabs)')
+    if (inAuth) router.replace('/')
   }, [status, isVerified, segments, router])
 
   if (status === 'loading') {
     return <View style={{ flex: 1, backgroundColor: colors.night }} />
+  }
+
+  const analysisHeader = {
+    headerTintColor: colors.chalk,
+    headerBackVisible: false as const,
+    headerLeft: () => <StackBackButton />,
   }
 
   return (
@@ -46,14 +53,13 @@ function AuthGate() {
       }}
     >
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="leaderboard" options={{ title: 'Leaderboard', headerBackTitle: 'Back' }} />
-      <Stack.Screen name="processing/[jobId]" options={{ title: 'Analyzing', headerBackTitle: 'Back' }} />
-      <Stack.Screen name="results/[deliveryId]" options={{ title: 'Results', headerBackTitle: 'Back' }} />
+      <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+      <Stack.Screen name="processing/[jobId]" options={{ title: 'Analyzing', ...analysisHeader }} />
+      <Stack.Screen name="results/[deliveryId]" options={{ title: 'Results', ...analysisHeader }} />
       <Stack.Screen name="balltrack/record" options={{ headerShown: false, title: 'Record' }} />
-      <Stack.Screen name="balltrack/processing/[jobId]" options={{ title: 'Tracking', headerBackTitle: 'Back' }} />
-      <Stack.Screen name="balltrack/session/[sessionId]" options={{ title: 'Session', headerBackTitle: 'Back' }} />
-      <Stack.Screen name="balltrack/delivery/[deliveryId]" options={{ title: 'Ball', headerBackTitle: 'Back' }} />
+      <Stack.Screen name="balltrack/processing/[jobId]" options={{ title: 'Tracking', ...analysisHeader }} />
+      <Stack.Screen name="balltrack/session/[sessionId]" options={{ title: 'Session', ...analysisHeader }} />
+      <Stack.Screen name="balltrack/delivery/[deliveryId]" options={{ title: 'Ball', ...analysisHeader }} />
     </Stack>
   )
 }

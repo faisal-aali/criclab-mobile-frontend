@@ -2,11 +2,11 @@ import * as ImagePicker from 'expo-image-picker'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { Alert, Pressable, Text, TextInput, View } from 'react-native'
-import { uploadVideo, type PickedVideo } from '../../src/api/client'
-import { FieldLabel, fieldInputStyle } from '../../src/components/ChoiceRow'
-import { ClipPlayer } from '../../src/components/ClipPlayer'
-import { Logo } from '../../src/components/Logo'
-import { Screen } from '../../src/components/Screen'
+import { uploadVideo, type PickedVideo } from '../../../src/api/client'
+import { FieldLabel, fieldInputStyle } from '../../../src/components/ChoiceRow'
+import { ClipPlayer } from '../../../src/components/ClipPlayer'
+import { AppHeader } from '../../../src/components/AppHeader'
+import { Screen } from '../../../src/components/Screen'
 import {
   emptyProfile,
   heightMeters,
@@ -15,8 +15,8 @@ import {
   profileBlockers,
   profileInitials,
   type SavedProfile,
-} from '../../src/storage/profile'
-import { colors } from '../../src/theme'
+} from '../../../src/storage/profile'
+import { colors } from '../../../src/theme'
 
 export default function AnalyzeScreen() {
   const router = useRouter()
@@ -92,7 +92,7 @@ export default function AnalyzeScreen() {
 
   return (
     <Screen>
-      <Logo />
+      <AppHeader />
       <Text style={{ marginTop: 18, fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>
         ACTION · SIDE-ON
       </Text>

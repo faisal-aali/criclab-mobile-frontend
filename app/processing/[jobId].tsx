@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { ActivityIndicator, Text, View } from 'react-native'
 import { getJob, type Job } from '../../src/api/client'
 import { Screen } from '../../src/components/Screen'
+import { useFallbackBack } from '../../src/nav/back'
 import { ProcessingShimmer } from '../../src/shimmer'
 import { colors } from '../../src/theme'
 
@@ -21,6 +22,7 @@ const STAGES = [
 export default function ProcessingScreen() {
   const { jobId } = useLocalSearchParams<{ jobId: string }>()
   const router = useRouter()
+  useFallbackBack()
   const [job, setJob] = useState<Job | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -58,7 +60,7 @@ export default function ProcessingScreen() {
   const failed = job?.status === 'failed'
 
   return (
-    <Screen>
+    <Screen safeTop={false}>
       <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.seam }}>
         PROCESSING
       </Text>

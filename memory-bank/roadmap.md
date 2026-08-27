@@ -20,6 +20,7 @@ criclab-web-backend**. This table is what **this Expo repo** should have.
 | FEAT-M11 | Train + leaderboard | Done | GET /coaching/drills, GET /leaderboard |
 | FEAT-M12 | Expo Go polish | Planned | Clearer LAN errors, upload progress, offline notice |
 | FEAT-M13 | On-device capture guide | Planned | Overlay tips while recording Action (side-on, full body) |
+| FEAT-M14 | Drawer + tickets | Done | Side drawer: leaderboard, tickets, notifications, coaching |
 
 ## Inherited lab roadmap (do not implement in this repo)
 
@@ -36,3 +37,6 @@ not something to paste onto Action results.
 - **27 Aug 2026:** Sibling lab is `Cric-Lab/criclab-web-backend` (not
   CricLabMLReview). Auth required. Brand CricLab. Dark/lime UI. Train +
   leaderboard. Two film modes stay separate.
+- **27 Aug 2026:** Side drawer for Leaderboard, Tickets, Notifications,
+  Coaching. Results back control falls back to the lab tabs when the
+  processing screen was `replace`d away.
