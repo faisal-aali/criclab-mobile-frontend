@@ -14,11 +14,7 @@ export function Logo({ size = 34 }: { size?: number }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
       <LogoMark size={size} />
-      <Text style={{ fontSize: 22, fontWeight: '800', letterSpacing: -0.3 }}>
-        <Text style={{ color: colors.pitch }}>Cric</Text>
-        <Text style={{ color: colors.seam }}>-Lab </Text>
-        <Text style={{ color: colors.pitch }}>AI</Text>
-      </Text>
+      <Text style={{ fontSize: 22, fontWeight: '800', letterSpacing: -0.4, color: colors.chalk }}>CricLab</Text>
     </View>
   )
 }

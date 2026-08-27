@@ -1,40 +1,49 @@
-# Product Brief — Cric-Lab AI (mobile)
+# Product Brief — CricLab (mobile)
 
 ## Purpose
 
-Cric-Lab is an **AI Cricket Bowling Laboratory**: capture or pick a bowling
-video, get measurable bowling insights, and open a professional PDF analysis
-report. Inspired by SpinLab AI’s video-analysis experience, focused on cricket
-bowling for v1.
+CricLab is a **cricket bowling analysis lab**. Film a delivery, get measured
+biomechanics (or an honest “—”), then a coaching narrative and PDF. Pose
+(MediaPipe) is the measurement engine. Gemma never measures. Never invent km/h.
 
-**This repo is the phone app.** Display name: **Cric-Lab AI**.
+**This repo is the phone app.** Display name: **CricLab**.
 
 **Core promise:** Video → (lab) Pose Motion Analysis → Biomechanics Metrics →
-Slow-motion Overlay Clip → On-device Results → AI Summary → SpinLab-style PDF.
+Slow-motion Overlay → Results → AI Summary → PDF. Same JSON as the web workspace.
 
-Like **SpinLab AI** for quarterbacks, but for **cricket bowling**.
+## Two film modes (must not mix numbers)
+
+| Mode | Camera | What it measures |
+|------|--------|------------------|
+| **Action** | Side-on, full body | Mechanics: release, sequence, arm speed, stride. Ball km/h only with an in-air lock. |
+| **Ball flight** | Behind the bowler, stump-calibrated | Speed, line, length, pitch map. Empty clips → “no ball found”, never a fake speed. |
+
+Action results and Ball flight results are separate jobs. Do not show a Ball
+flight km/h on an Action report, or Action joint angles on a Ball flight ball.
 
 ## Users
 
-- Individual bowlers / athletes analyzing their own action
+- Individual bowlers analyzing their own action
 - Coaches reviewing bowling sessions
-- Single-user or small coaching workflows first (auth can be light for MVP)
+- Signed-in, **email-verified** accounts (same as the web workspace)
 
-## What this mobile app must do (v1)
+## What this mobile app must do
 
-Mirror the web lab screens. Do **not** invent a different product.
-
-1. **Analyze (upload)** — required bowler profile (name, DOB, height ft/in,
-   weight lbs, bowling arm, style) + one delivery video (library or camera)
-2. **Processing** — poll job status; show pipeline stages; never pretend analysis
-   is instant
-3. **Results** — overlay + original video, headline ball/arm speed, quality
-   banner, kinematic sequence, action scores, metric cards, Gemma sections, PDF
-4. **History** — list past deliveries from the lab API; open a result
-5. **Settings** — API base URL (simulator vs LAN phone) + health check
+1. **Auth** — sign up, verify email (OTP), sign in, refresh, sign out. Access
+   token in memory; refresh token in AsyncStorage. Bearer on every analysis call.
+2. **Action** — bowler profile + one side-on clip → `POST /videos`
+3. **Processing** — poll `GET /jobs/:id`; never pretend analysis is instant
+4. **Results** — overlay + original, headline speeds only when `metricReady`,
+   quality banner, sequence, scores, Gemma, PDF
+5. **History** — this user’s Action deliveries (`GET /deliveries`)
+6. **Ball flight** — stump alignment → session film → `POST /balltrack/sessions`
+7. **Train** — drill catalog (`GET /coaching/drills`)
+8. **Leaderboard** — top measured Action ball speeds (`GET /leaderboard`); other
+   players’ reports stay private (`result_id` only when `mine`)
+9. **Account / lab URL** — profile, API base (simulator vs LAN), health ping
 
 The phone **uploads a file** and **renders JSON + media URLs**. Pose, ball
-track, overlay encode, Gemma, and PDF still run on the FastAPI lab.
+track, overlay, Gemma, and PDF still run on FastAPI.
 
 ## Inherited lab features (server — already built)
 
@@ -42,38 +51,39 @@ Do not rebuild these in React Native. Display their outputs honestly.
 
 1. Pose pipeline — MediaPipe BlazePose
 2. Release & phases — BFC → FFC → MER → REL → FT
-3. Metrics — ball speed (in-air lock only), arm speed, release height/angle/time,
-   joint angles, stride, 2D rotation proxies, scores, confidence
-4. Slow-motion overlay — grayscale HUD, Cloudinary URL when available
-5. AI analysis — Gemma from structured metrics only
-6. PDF — SpinLab-style cricket report
-7. History — MongoDB deliveries
+3. Metrics — ball speed (in-air lock only on Action), arm speed, release, joints,
+   stride, 2D rotation proxies, scores, confidence
+4. Ball flight — stump calibration, trajectory, pitch map
+5. Slow-motion overlay + Cloudinary when available
+6. AI analysis — Gemma from structured metrics only
+7. PDF — bowling report
+8. Auth, notifications, bookings, drill catalog, leaderboard
 
-## Success Metrics (mobile)
+## Success metrics (mobile)
 
 | Metric | Target |
 |--------|--------|
-| End-to-end: pick clip → results → PDF | Works against a running local lab |
-| Profile required before Analyze | Height + bowling arm cannot be skipped |
+| Signed-in upload → results → PDF | Works against a running local lab |
+| Unverified account cannot analyze | Routed to OTP verify |
 | Metrics shown with confidence | `status !== ok` → "—" never a fake km/h |
-| Job progress visible | Stages poll until completed/failed |
+| Two modes stay separate | No mixed numbers on one screen |
 | Physical phone can hit the lab | Settings URL + uvicorn `--host 0.0.0.0` |
 
-## Out of Scope (v1)
+## Out of scope
 
 - Batting, fielding, wicket-keeping
 - On-device MediaPipe / TensorFlow Lite pose
-- Claiming radar-gun accuracy (Fulltrack-style stump calibration is a *future*
-  lab feature, not a phone-only trick)
-- Multi-tenant SaaS / team billing
-- Frame-by-frame measurement by any LLM (on device or server)
-- Merging this repo into `CricLabMLReview`
+- Claiming radar-gun accuracy
+- Mixing Action and Ball flight into one “super report”
+- Porting the Vite web CSS; this is Expo
+- Talking to MongoDB or Ollama from the phone
+- Admin UI (that is the web `/admin` shell)
 
-## Product Principles
+## Product principles
 
 - **CV + physics first, LLM second** — measurements are structured; Gemma narrates
-- **Estimates until calibrated** — label them; never clamp a bad number
+- **Measure or null + reason** — never clamp a bad number into a nice value
 - **Bowling-only MVP**
 - **Same metrics JSON as the web app** — `metricReady` = value present AND `status === 'ok'`
-- **SpinLab-like clarity** — video, cards, scores, AI notes, PDF
-- **Film side-on** — front-on cannot yield truthful 2D km/h; the lab will reject it
+- **Film Action side-on** — front-on cannot yield truthful 2D km/h
+- **Auth is required** — frontend guards are not a security boundary; the lab enforces it

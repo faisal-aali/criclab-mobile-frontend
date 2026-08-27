@@ -1,4 +1,4 @@
-# Agent Rules — Cric-Lab AI Memory Bank
+# Agent Rules — CricLab Memory Bank
 
 How the agent should behave in **this** repo (`cric-lab-ai`).
 
@@ -12,16 +12,18 @@ How the agent should behave in **this** repo (`cric-lab-ai`).
    - Relevant `tasks/`
    - These `agent-rules/`
 2. Summarize goals, constraints, and gaps **before** coding when the task is large.
-3. This product is **Cric-Lab AI** (Expo client). Do **not** invent Notera notes/PWA,
-   Hybrid CRM, Next.js, or a second MediaPipe stack.
+3. This product is **CricLab** (Expo client). Do **not** invent Notera notes/PWA,
+   Hybrid CRM, Next.js, a second MediaPipe stack, or point at `CricLabMLReview`.
 
 ## Context over prompts
 
 - Prefer Memory Bank over assumptions
 - If a prompt conflicts with `systemPatterns.md`, follow `systemPatterns.md` and say so
-- UX inspiration may reference SpinLab AI; domain remains cricket **bowling** for v1
-- Fulltrack.ai is a *different* product (behind-bowler stump-calibrated ball track).
-  Do not copy its setup into this side-on pose app unless the **lab** adds it.
+- Domain remains cricket **bowling** for v1
+- Fulltrack.ai is a *different* product. Ball flight (behind-bowler, stump-calibrated)
+  already exists on the lab — do not copy its numbers onto Action screens.
+- The measurement lab is `/Users/macbookpro/Desktop/Cric-Lab/criclab-web-backend`
+  (Python 3.12). The web UI is `criclab-web-frontend`. This repo only displays.
 
 ## Planning before coding
 
@@ -30,25 +32,27 @@ For non-trivial work:
 1. Restate requirements against `productBrief.md` + task
 2. Outline approach against `systemPatterns.md`
 3. List files in **this** repo (`app/`, `src/`). If the change needs pose/PDF/metrics
-   formulas, say so and stop — that belongs in `CricLabMLReview`.
+   formulas, say so and stop — that belongs in `criclab-web-backend`.
 4. Implement
 
 ## Implementation rules
 
-- Expo Router screens only; typed `src/api/client.ts`
+- Expo Router screens only; typed `src/api/client.ts` + `src/api/http.ts`
 - Display lab JSON honestly (`metricReady`)
-- Persist profile + API URL in AsyncStorage
+- Persist profile + API URL + refresh token in AsyncStorage; access token in memory
 - Label physical metrics as estimates unless the lab marked `status: ok`
 - Prefer reliable bowling MVP over batting or on-device ML
 - Match installed Expo SDK in `package.json` (read it; don’t guess)
+- Auth on every analysis call. Public only: `/health`, `/auth/*` signup/login/refresh
 
 ## Demo prompts
 
 | Prompt | Expected behavior |
 |--------|-------------------|
-| `Read all memory bank files.` | Explain Cric-Lab AI vs the Python lab — no code yet |
+| `Read all memory bank files.` | Explain CricLab mobile vs the Python lab — no code yet |
 | Add a metric card | Read it from existing JSON; do not compute it on device |
 | Make speed radar-accurate | Explain that is lab/hardware; don’t fake it in RN |
+| Combine Action and Flight | Refuse; two modes must not mix numbers |
 
 ## Updates
 

@@ -16,6 +16,7 @@ export default function HistoryScreen() {
   useFocusEffect(
     useCallback(() => {
       let alive = true
+      setLoading(true)
       listDeliveries()
         .then((res) => {
           if (!alive) return
@@ -38,9 +39,9 @@ export default function HistoryScreen() {
   return (
     <Screen>
       <Logo />
-      <Text style={{ marginTop: 18, fontSize: 32, fontWeight: '800', color: colors.pitch }}>History</Text>
+      <Text style={{ marginTop: 18, fontSize: 32, fontWeight: '800', color: colors.chalk }}>History</Text>
       <Text style={{ marginTop: 6, color: colors.muted }}>
-        Previous deliveries. Re-upload a clip to re-run analysis — old rows stay as they were.
+        Your Action deliveries. Ball flight sessions live on the Flight tab — the two must not mix numbers.
       </Text>
       {error ? <Text style={{ marginTop: 12, color: colors.ball }}>{error}</Text> : null}
 
@@ -61,7 +62,7 @@ export default function HistoryScreen() {
               key={d.id}
               onPress={() => router.push(`/results/${d.id}`)}
               style={{
-                backgroundColor: 'rgba(255,255,255,0.85)',
+                backgroundColor: colors.card,
                 borderRadius: 18,
                 borderWidth: 1,
                 borderColor: colors.line,
@@ -72,7 +73,7 @@ export default function HistoryScreen() {
               }}
             >
               <View style={{ flex: 1 }}>
-                <Text style={{ fontWeight: '800', fontSize: 16, color: colors.pitch }}>
+                <Text style={{ fontWeight: '800', fontSize: 16, color: colors.chalk }}>
                   {d.player_name || 'Bowler'}
                 </Text>
                 <Text style={{ marginTop: 4, fontSize: 12, color: colors.muted }}>
@@ -87,7 +88,7 @@ export default function HistoryScreen() {
                 ) : null}
               </View>
               <View style={{ alignItems: 'flex-end' }}>
-                <Text style={{ fontSize: 24, fontWeight: '800', color: colors.pitch }}>
+                <Text style={{ fontSize: 24, fontWeight: '800', color: colors.lime }}>
                   {ballOk ? Number(ball!.value).toFixed(1) : '—'}
                 </Text>
                 <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.6, color: colors.muted }}>

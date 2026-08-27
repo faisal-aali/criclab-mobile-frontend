@@ -156,9 +156,9 @@ export default function BallTrackRecord() {
           <Pressable
             onPress={toggleRecord}
             disabled={busy || finding}
-            style={[styles.primary, { backgroundColor: recording ? '#E11D2A' : '#fff', opacity: busy ? 0.6 : 1 }]}
+            style={[styles.primary, { backgroundColor: recording ? '#E11D2A' : colors.lime, opacity: busy ? 0.6 : 1 }]}
           >
-            <Text style={[styles.primaryText, { color: recording ? '#fff' : colors.pitch }]}>
+            <Text style={[styles.primaryText, { color: recording ? '#fff' : colors.onLime }]}>
               {busy ? 'Uploading…' : recording ? 'Stop & analyze' : 'Record session'}
             </Text>
           </Pressable>
@@ -178,13 +178,13 @@ const styles = StyleSheet.create({
   banner: {
     flex: 1,
     marginHorizontal: 8,
-    backgroundColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: 'rgba(5,9,10,0.88)',
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   bannerText: {
-    color: '#111',
+    color: '#f6f9f7',
     fontSize: 13,
     fontWeight: '600',
     lineHeight: 18,
@@ -206,10 +206,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primary: {
-    backgroundColor: '#fff',
+    backgroundColor: '#b6f24a',
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
   },
-  primaryText: { fontWeight: '800', fontSize: 16, color: colors.pitch },
+  primaryText: { fontWeight: '800', fontSize: 16, color: '#05090a' },
 })

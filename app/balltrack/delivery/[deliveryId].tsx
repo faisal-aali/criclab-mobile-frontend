@@ -49,7 +49,7 @@ export default function BallTrackDeliveryScreen() {
       {!loading && data ? (
         <>
           <Text style={{ fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.seam }}>DELIVERY</Text>
-          <Text style={{ marginTop: 8, fontSize: 28, fontWeight: '800', color: colors.pitch }}>
+          <Text style={{ marginTop: 8, fontSize: 28, fontWeight: '800', color: colors.chalk }}>
             Ball {data.index}
           </Text>
           {error ? <Text style={{ marginTop: 12, color: colors.ball }}>{error}</Text> : null}

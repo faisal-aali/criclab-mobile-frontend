@@ -2,7 +2,7 @@ import { Text, View } from 'react-native'
 import type { Metric } from './types'
 
 function ready(metric?: Metric) {
-  return metric?.value != null && (metric.status == null || metric.status === 'ok')
+  return metric?.value != null && metric.status === 'ok'
 }
 
 function Chip({

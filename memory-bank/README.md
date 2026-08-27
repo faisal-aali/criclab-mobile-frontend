@@ -1,16 +1,17 @@
-# Memory Bank — Cric-Lab AI (mobile)
+# Memory Bank — CricLab (mobile)
 
 Structured source of truth the AI reads **first** in this repo.
 
-This repo is the **Expo / React Native client** for Cric-Lab. The vision lab
-(MediaPipe, metrics, overlay, Gemma, PDF, MongoDB) lives in the sibling project
-`CricLabMLReview` (FastAPI). Do not reimplement that pipeline on the phone.
+This repo is the **Expo / React Native client** for CricLab. Pose, metrics,
+overlay, Gemma, PDF, MongoDB, and auth all live in the sibling lab
+`Cric-Lab/criclab-web-backend` (FastAPI). Do not reimplement that pipeline on
+the phone.
 
 ## Layout
 
 ```text
 memory-bank/
-├── productBrief.md      # What Cric-Lab is — users, features, success
+├── productBrief.md      # What CricLab is — users, features, success
 ├── techContext.md       # Expo RN client + FastAPI lab it talks to
 ├── systemPatterns.md    # Architecture rules — MOST IMPORTANT FILE
 ├── roadmap.md           # Mobile features + inherited lab features
@@ -22,16 +23,16 @@ memory-bank/
 
 | File | Role |
 |------|------|
-| `productBrief.md` | Cricket bowling lab: upload → analyze → metrics → PDF — on phone |
-| `techContext.md` | Expo Router, typed API client, LAN FastAPI |
+| `productBrief.md` | Cricket bowling lab: two film modes, auth, results |
+| `techContext.md` | Expo Router, authenticated API client, LAN FastAPI |
 | `systemPatterns.md` | CV metrics first (on the server); phone displays the same JSON |
 | `roadmap.md` | Mobile client + what the lab already does |
 
 ## Why this exists
 
-Vague prompts force guessing (Next.js, on-device ML, batting, radar-gun claims).
-The Memory Bank encodes product intent so the agent behaves like a teammate who
-already knows Cric-Lab.
+Vague prompts force guessing (Next.js, on-device ML, batting, radar-gun claims,
+mixing Action km/h with Ball flight). The Memory Bank encodes product intent so
+the agent behaves like a teammate who already knows CricLab.
 
 **Key lesson:** context changes output more than prompts.
 
@@ -45,7 +46,12 @@ already knows Cric-Lab.
 
 | Repo | Path | Job |
 |------|------|-----|
-| **Cric-Lab AI** (this) | `~/Desktop/cric-lab-ai` | Mobile UI |
-| **CricLabMLReview** | `~/Desktop/CricLabMLReview` | FastAPI + pose + PDF |
+| **CricLab mobile** (this) | `~/Desktop/cric-lab-ai` | Phone UI |
+| **CricLab backend** | `~/Desktop/Cric-Lab/criclab-web-backend` | FastAPI + pose + PDF + auth |
+| **CricLab web** | `~/Desktop/Cric-Lab/criclab-web-frontend` | Vite web app (same API) |
 
-UX inspiration: SpinLab AI. Domain: cricket **bowling** only for v1.
+The old sibling `CricLabMLReview` is retired. Point every API call at
+`criclab-web-backend`. Python **3.12** only for that lab.
+
+Brand: **CricLab** (not “Cric-Lab AI”, not SpinLab, not Fulltrack).
+Domain: cricket **bowling** only for v1.

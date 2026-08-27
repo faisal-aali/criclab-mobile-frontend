@@ -41,7 +41,7 @@ export function ClipPlayer({
         <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 11, fontWeight: '800', letterSpacing: 0.8 }}>
           {label.toUpperCase()}
         </Text>
-        <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10, fontWeight: '700' }}>CRIC-LAB AI</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10, fontWeight: '700' }}>CRICLAB</Text>
       </View>
       <View>
         <VideoView

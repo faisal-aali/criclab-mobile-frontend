@@ -62,7 +62,7 @@ export default function ProcessingScreen() {
       <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.seam }}>
         PROCESSING
       </Text>
-      <Text style={{ marginTop: 8, textAlign: 'center', fontSize: 28, fontWeight: '800', color: colors.pitch }}>
+      <Text style={{ marginTop: 8, textAlign: 'center', fontSize: 28, fontWeight: '800', color: colors.chalk }}>
         Reading the delivery
       </Text>
       <Text style={{ marginTop: 10, textAlign: 'center', color: colors.muted }}>
@@ -70,6 +70,7 @@ export default function ProcessingScreen() {
       </Text>
       <Text style={{ marginTop: 4, textAlign: 'center', fontSize: 12, color: colors.muted }}>
         Pose on a long clip can take several minutes. Keep this screen open.
+        {job?.eta_seconds != null ? ` About ${Math.max(1, Math.round(job.eta_seconds))}s left.` : ''}
       </Text>
 
       {!job && !error ? (
@@ -85,7 +86,7 @@ export default function ProcessingScreen() {
           }}
         />
       </View>
-      <Text style={{ marginTop: 8, textAlign: 'center', fontWeight: '700', color: colors.pitch }}>{progress}%</Text>
+      <Text style={{ marginTop: 8, textAlign: 'center', fontWeight: '700', color: colors.chalk }}>{progress}%</Text>
 
       <View style={{ marginTop: 20, gap: 10 }}>
         {STAGES.map((s, i) => {
@@ -112,7 +113,7 @@ export default function ProcessingScreen() {
               >
                 <Text style={{ color: colors.white, fontSize: 12, fontWeight: '800' }}>{done ? '✓' : i + 1}</Text>
               </View>
-              <Text style={{ flex: 1, fontWeight: done || active ? '700' : '500', color: done || active ? colors.pitch : colors.muted }}>
+              <Text style={{ flex: 1, fontWeight: done || active ? '700' : '500', color: done || active ? colors.chalk : colors.muted }}>
                 {s.label}
               </Text>
               {active ? <ActivityIndicator color={colors.seam} /> : null}
@@ -126,7 +127,7 @@ export default function ProcessingScreen() {
       {error ? (
         <View style={{ marginTop: 20, backgroundColor: colors.roseBg, borderRadius: 14, padding: 14 }}>
           <Text style={{ color: colors.ball }}>{error}</Text>
-          <Link href="/" style={{ marginTop: 10, fontWeight: '800', color: colors.pitch }}>
+          <Link href="/" style={{ marginTop: 10, fontWeight: '800', color: colors.lime }}>
             Back to upload
           </Link>
         </View>

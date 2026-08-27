@@ -1,27 +1,8 @@
 import { getApiBase } from './config'
+import { authFetch, publicFetch } from './http'
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const base = await getApiBase()
-  let res: Response
-  try {
-    res = await fetch(`${base}${path}`, init)
-  } catch (err) {
-    const reason = err instanceof Error ? err.message : 'Network request failed'
-    throw new Error(
-      `${reason} (${base}). On a phone use your Mac LAN IP and start FastAPI with --host 0.0.0.0`,
-    )
-  }
-  if (!res.ok) {
-    let detail = res.statusText
-    try {
-      const data = await res.json()
-      detail = data.detail || data.message || detail
-    } catch {
-      /* ignore */
-    }
-    throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail))
-  }
-  return res.json() as Promise<T>
+function request<T>(path: string, init?: RequestInit): Promise<T> {
+  return authFetch<T>(path, init)
 }
 
 export type Job = {
@@ -33,6 +14,7 @@ export type Job = {
   message?: string
   delivery_id?: string
   error?: string
+  eta_seconds?: number | null
 }
 
 export type MetricValue = {
@@ -102,8 +84,26 @@ export type Metrics = {
 
 export function metricReady(m?: MetricValue | null): boolean {
   if (!m || m.value == null) return false
-  if (m.status && m.status !== 'ok') return false
-  return true
+  return m.status === 'ok'
+}
+
+export type DrillCatalogItem = {
+  id: string
+  youtube_id: string
+  title: string
+  tags: string[]
+}
+
+export type LeaderboardRow = {
+  rank: number
+  player_name: string
+  ball_speed_kmh: number | null
+  arm_speed_kmh: number | null
+  delivery_type: string | null
+  bowling_arm: string | null
+  created_at: string
+  mine: boolean
+  result_id: string | null
 }
 
 export type Analysis = {
@@ -214,5 +214,14 @@ export function getDelivery(id: string) {
 }
 
 export function getHealth() {
-  return request<{ ok: boolean; name?: string }>('/health')
+  return publicFetch<{ ok: boolean; name?: string }>('/health')
+}
+
+export function listDrills(tag?: string) {
+  const q = tag ? `?tag=${encodeURIComponent(tag)}` : ''
+  return request<{ items: DrillCatalogItem[]; tags: string[] }>(`/coaching/drills${q}`)
+}
+
+export function listLeaderboard() {
+  return request<{ items: LeaderboardRow[] }>('/leaderboard')
 }

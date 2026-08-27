@@ -1,82 +1,95 @@
-# Tech Context — Cric-Lab AI (mobile)
+# Tech Context — CricLab (mobile)
 
 ## This repo
 
-Expo React Native app. Display name **Cric-Lab AI**. Folder
-`/Users/macbookpro/Desktop/cric-lab-ai`. Separate git remote from the lab.
+Expo React Native app. Display name **CricLab**. Folder
+`/Users/macbookpro/Desktop/cric-lab-ai`. Separate git remote from the web monorepo.
 
 ## Stack
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
 | App | **Expo + React Native + TypeScript** | Phone / simulator client |
-| Nav | **Expo Router** | Tabs (Analyze, History, Settings) + stack (processing, results) |
+| Nav | **Expo Router** | Auth stack + tabs (Action, Flight, History, Train, More) + analysis stacks |
 | Video pick | `expo-image-picker` | Library + camera, videos only |
+| Ball flight camera | `expo-camera` | Behind-bowler session film |
 | Playback | `expo-video` | Original + overlay clips |
-| Storage | `@react-native-async-storage/async-storage` | Profile + API base URL |
+| Storage | `@react-native-async-storage/async-storage` | Refresh token, profile, API base |
 | PDF / links | `expo-web-browser`, `expo-clipboard` | Open report, copy Cloudinary URL |
-| Lab API | Fetch → FastAPI | Upload, jobs, deliveries, health |
+| Lab API | Fetch → FastAPI with Bearer | Auth, upload, jobs, deliveries, balltrack, drills, leaderboard |
 
 Read **this project's** `package.json` for the exact Expo SDK. Do not assume
-SDK 54 vs 57 from memory — use the installed version and
+SDK from memory — use the installed version and
 [docs.expo.dev](https://docs.expo.dev/).
 
 ## Sibling lab (required to analyze a clip)
 
-Path: `/Users/macbookpro/Desktop/CricLabMLReview`
+Path: `/Users/macbookpro/Desktop/Cric-Lab/criclab-web-backend`
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| API | Python **FastAPI** (`backend/.venv312`) | Jobs, metrics, artifacts |
+| API | Python **3.12** FastAPI (`.venv312`) | Auth, jobs, metrics, artifacts |
 | Pose | MediaPipe BlazePose | Measurement engine |
-| Overlay / PDF | OpenCV + ReportLab | Slow-mo HUD + SpinLab-style report |
-| DB | MongoDB | Deliveries / history |
+| Overlay / PDF | OpenCV + ReportLab | Slow-mo HUD + report |
+| DB | MongoDB | Users, deliveries, sessions |
 | LLM | Ollama `gemma3:4b` | Coaching narrative from metrics JSON only |
 | Hosting | Cloudinary + local `/artifacts` | Shareable video + PDF |
 
-Python **3.10–3.12** only for the lab (`backend/.venv312`). Not this app’s problem,
-but uploads fail if that server is down.
+Start the lab with `./run.sh` from that backend folder (`--host 0.0.0.0`).
+Uploads fail if that server is down.
+
+The Vite web app uses a `/api` proxy. **This app does not.** It calls port 8000
+directly.
 
 ## Data flow
 
 ```text
-Cric-Lab AI (Expo)
-  → POST http://<lab>:8000/videos
+CricLab (Expo)
+  → POST http://<lab>:8000/auth/login
+  → POST http://<lab>:8000/videos   (Bearer)
     → FastAPI job (pose → metrics → overlay → Gemma → PDF)
       → GET /jobs/:id (poll)
         → GET /deliveries/:id
           → Results screen (same JSON as the Vite web app)
 ```
 
-The Vite web app in the lab uses a `/api` proxy. **This app does not.** It calls
-port 8000 directly.
-
 ## Repo layout
 
 ```text
 cric-lab-ai/
 ├── app/                      # Expo Router
-│   ├── _layout.tsx           # root stack
-│   ├── (tabs)/               # Analyze, History, Settings
+│   ├── _layout.tsx           # AuthProvider + root stack
+│   ├── (auth)/               # login, signup, verify, forgot
+│   ├── (tabs)/               # Action, Flight, History, Train, More
+│   ├── leaderboard.tsx
 │   ├── processing/[jobId].tsx
-│   └── results/[deliveryId].tsx
+│   ├── results/[deliveryId].tsx
+│   └── balltrack/            # record, processing, session, delivery
 ├── src/
-│   ├── api/client.ts         # typed FastAPI client + metricReady
+│   ├── api/http.ts           # publicFetch + authFetch + refresh
+│   ├── api/auth.ts           # auth endpoints
+│   ├── api/client.ts         # videos, jobs, deliveries, drills, leaderboard
 │   ├── api/config.ts         # API base URL
-│   ├── components/           # Logo, MetricCard, ClipPlayer, Screen
+│   ├── auth/AuthProvider.tsx
+│   ├── balltrack/api.ts
+│   ├── components/
 │   ├── storage/profile.ts
-│   └── theme.ts
-├── memory-bank/              # this folder — read first
+│   └── theme.ts              # night / lime / chalk
+├── memory-bank/
 └── package.json
 ```
 
 ## API contract (do not drift)
 
-Types in `src/api/client.ts` must stay aligned with the lab’s
-`frontend/src/api/client.ts` (Job, Metrics, MetricValue, Delivery, Artifacts).
+Types in `src/api/client.ts` must stay aligned with
+`Cric-Lab/criclab-web-frontend/src/api/client.ts` (Job including `eta_seconds`,
+Metrics, MetricValue, Delivery, Artifacts, LeaderboardRow, DrillCatalogItem).
 
-`metricReady`: no display value unless `status === 'ok'` (or status omitted with
-a real value — prefer requiring `ok`).
+`metricReady`: no display value unless `status === 'ok'` and value is present.
+
+Auth types match `criclab-web-frontend/src/api/auth.ts`:
+`AuthUser { id, email, name, role, email_verified, ... }`,
+`TokenBundle { access_token, refresh_token, expires_at, expires_in, user }`.
 
 ## Local setup
 
@@ -87,12 +100,11 @@ npm install
 npx expo start
 
 # lab (other repo)
-cd ~/Desktop/CricLabMLReview/backend
-source .venv312/bin/activate
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+cd ~/Desktop/Cric-Lab/criclab-web-backend
+./run.sh
 ```
 
-| Where the app runs | API base (Settings) |
+| Where the app runs | API base (More tab) |
 |--------------------|---------------------|
 | iOS Simulator | `http://127.0.0.1:8000` |
 | Android emulator | `http://10.0.2.2:8000` |
@@ -104,7 +116,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 Same list as the lab. Phone must not invent extras.
 
-- Ball speed (km/h, m/s) — in-air path only
+- Ball speed (km/h, m/s) — in-air path only on Action
 - Arm/hand speed at leave-hand
 - Release height, time, angle
 - Elbow extension, front-knee flexion, hip/shoulder separation
@@ -113,6 +125,7 @@ Same list as the lab. Phone must not invent extras.
 - Hip/trunk 2D proxies (advanced, not headline)
 - Action scores 0–100 (heuristic, not clinical)
 - Quality: camera_view, speed_view_ok, calibrated, tracking_ok
+- Ball flight: speed, line, length, pitch map — never mixed into Action
 
 ## Calibration honesty
 
@@ -124,4 +137,5 @@ Do not “fix” a null by showing `raw_computed`.
 - Frontend here is **Expo**, not Vite and not Next.js
 - Do not put frame measurement logic in the app or in Gemma
 - MongoDB stays on the lab
-- Keep Analyze → Processing → Results → History. Don’t replace with a feed/social app
+- Keep Action → Processing → Results and Flight → Session separate
+- Auth tokens: never log them; never put the access token in AsyncStorage

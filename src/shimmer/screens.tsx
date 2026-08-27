@@ -45,7 +45,7 @@ export function DeliveryShimmer() {
             style={{
               flex: 1,
               minWidth: '46%',
-              backgroundColor: colors.white,
+              backgroundColor: colors.card,
               borderRadius: 16,
               borderWidth: 1,
               borderColor: colors.line,

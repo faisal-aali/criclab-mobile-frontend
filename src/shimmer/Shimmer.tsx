@@ -32,14 +32,14 @@ export function Shimmer({ height = 12, width = '100%', borderRadius = 8, style }
           width,
           borderRadius,
           overflow: 'hidden',
-          backgroundColor: 'rgba(11,61,46,0.08)',
+          backgroundColor: 'rgba(255,255,255,0.06)',
         },
         style,
       ]}
     >
       <Animated.View style={[StyleSheet.absoluteFill, shine]}>
         <LinearGradient
-          colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.75)', 'rgba(255,255,255,0)']}
+          colors={['rgba(255,255,255,0)', 'rgba(182,242,74,0.18)', 'rgba(255,255,255,0)']}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
           style={{ width: boxW * 0.55, height: '100%' }}

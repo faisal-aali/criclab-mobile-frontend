@@ -12,10 +12,10 @@ export function EmptyState({ title, subtitle }: { title: string; subtitle?: stri
         borderRadius: 18,
         padding: 28,
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.6)',
+        backgroundColor: colors.card,
       }}
     >
-      <Text style={{ fontWeight: '800', color: colors.pitch }}>{title}</Text>
+      <Text style={{ fontWeight: '800', color: colors.chalk }}>{title}</Text>
       {subtitle ? (
         <Text style={{ marginTop: 6, textAlign: 'center', color: colors.muted, lineHeight: 20 }}>{subtitle}</Text>
       ) : null}

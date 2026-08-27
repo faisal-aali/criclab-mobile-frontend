@@ -11,7 +11,7 @@ export function MediaShimmer({ aspectRatio = 16 / 9 }: { aspectRatio?: number })
         borderRadius: 20,
         borderWidth: 1,
         borderColor: colors.line,
-        backgroundColor: colors.white,
+        backgroundColor: colors.card,
       }}
     >
       <View style={{ paddingHorizontal: 14, paddingVertical: 12 }}>

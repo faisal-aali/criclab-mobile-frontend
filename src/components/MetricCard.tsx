@@ -26,7 +26,7 @@ export function MetricCard({ label, metric }: { label: string; metric?: MetricVa
       style={{
         flex: 1,
         minWidth: '46%',
-        backgroundColor: colors.white,
+        backgroundColor: colors.card,
         borderRadius: 16,
         borderWidth: 1,
         borderColor: colors.line,
@@ -68,7 +68,7 @@ export function MetricCard({ label, metric }: { label: string; metric?: MetricVa
         </View>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: 8 }}>
-        <Text style={{ fontSize: 26, fontWeight: '800', color: hasValue ? colors.pitch : colors.line }}>
+        <Text style={{ fontSize: 26, fontWeight: '800', color: hasValue ? colors.chalk : colors.line }}>
           {value}
         </Text>
         {unit ? <Text style={{ fontSize: 12, fontWeight: '600', color: colors.muted }}>{unit}</Text> : null}

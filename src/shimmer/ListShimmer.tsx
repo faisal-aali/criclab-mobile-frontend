@@ -9,7 +9,7 @@ export function ListShimmer({ rows = 4 }: { rows?: number }) {
         <View
           key={i}
           style={{
-            backgroundColor: 'rgba(255,255,255,0.85)',
+            backgroundColor: colors.card,
             borderRadius: 18,
             borderWidth: 1,
             borderColor: colors.line,

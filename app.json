@@ -1,33 +1,34 @@
 {
   "expo": {
-    "name": "Cric-Lab AI",
+    "name": "CricLab",
     "slug": "cric-lab-ai",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "scheme": "criclabai",
+    "userInterfaceStyle": "dark",
+    "scheme": "criclab",
     "splash": {
       "image": "./assets/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0B3D2E"
+      "backgroundColor": "#05090a"
     },
     "ios": {
       "supportsTablet": true,
       "icon": "./assets/icon.png",
       "infoPlist": {
-        "NSCameraUsageDescription": "Cric-Lab AI records bowling video for pose analysis and ball tracking.",
+        "NSCameraUsageDescription": "CricLab records bowling video for pose analysis and ball flight tracking.",
         "NSMicrophoneUsageDescription": "Microphone is used when you record a bowling clip.",
         "NSPhotoLibraryUsageDescription": "Choose a bowling video from your library to analyze.",
         "NSAppTransportSecurity": {
-          "NSAllowsLocalNetworking": true
+          "NSAllowsLocalNetworking": true,
+          "NSAllowsArbitraryLoads": true
         }
       }
     },
     "android": {
       "icon": "./assets/icon.png",
       "adaptiveIcon": {
-        "backgroundColor": "#0B3D2E",
+        "backgroundColor": "#05090a",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -51,7 +52,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Cric-Lab AI records a bowling session for ball tracking.",
+          "cameraPermission": "CricLab records a bowling session for ball flight tracking.",
           "microphonePermission": "Microphone is used when you record a bowling session.",
           "recordAudioAndroid": true
         }
@@ -59,7 +60,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0B3D2E",
+          "backgroundColor": "#05090a",
           "image": "./assets/icon.png",
           "imageWidth": 200,
           "resizeMode": "contain"
@@ -69,13 +70,13 @@
         "expo-image-picker",
         {
           "photosPermission": "Choose a bowling video from your library to analyze.",
-          "cameraPermission": "Cric-Lab AI records a bowling delivery for pose analysis.",
+          "cameraPermission": "CricLab records a bowling delivery for pose analysis.",
           "microphonePermission": "Microphone is used when you record a bowling clip."
         }
       ]
     ],
     "extra": {
-      "apiBase": "http://192.168.1.26:8000"
+      "apiBase": "http://192.168.1.15:8000"
     }
   }
 }

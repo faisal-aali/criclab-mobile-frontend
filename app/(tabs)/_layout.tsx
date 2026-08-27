@@ -7,11 +7,11 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.pitch,
+        tabBarActiveTintColor: colors.lime,
         tabBarInactiveTintColor: colors.muted,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
         tabBarStyle: {
-          backgroundColor: 'rgba(255,255,255,0.96)',
+          backgroundColor: colors.charcoal,
           borderTopColor: colors.line,
           height: 84,
           paddingTop: 8,
@@ -21,9 +21,18 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Analyze',
+          title: 'Action',
           tabBarIcon: ({ color, focused, size }) => (
             <Ionicons name={focused ? 'videocam' : 'videocam-outline'} size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="balltrack"
+        options={{
+          title: 'Flight',
+          tabBarIcon: ({ color, focused, size }) => (
+            <Ionicons name={focused ? 'locate' : 'locate-outline'} size={size} color={color} />
           ),
         }}
       />
@@ -37,18 +46,18 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="balltrack"
+        name="train"
         options={{
-          title: 'Ball Track',
+          title: 'Train',
           tabBarIcon: ({ color, focused, size }) => (
-            <Ionicons name={focused ? 'locate' : 'locate-outline'} size={size} color={color} />
+            <Ionicons name={focused ? 'barbell' : 'barbell-outline'} size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: 'More',
           tabBarIcon: ({ color, focused, size }) => (
             <Ionicons name={focused ? 'person-circle' : 'person-circle-outline'} size={size} color={color} />
           ),

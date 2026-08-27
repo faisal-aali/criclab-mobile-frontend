@@ -1,7 +1,7 @@
+import { useRouter } from 'expo-router'
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, Pressable, Text, TextInput, View } from 'react-native'
-import { getHealth } from '../../src/api/client'
-import { getApiBase, setApiBase, suggestedLanHint } from '../../src/api/config'
+import { useAuth } from '../../src/auth/AuthProvider'
 import { ChoiceRow, FieldLabel, fieldInputStyle } from '../../src/components/ChoiceRow'
 import { Logo } from '../../src/components/Logo'
 import { Screen } from '../../src/components/Screen'
@@ -17,14 +17,13 @@ import {
 import { colors } from '../../src/theme'
 
 export default function ProfileScreen() {
+  const router = useRouter()
+  const { user, signOut } = useAuth()
   const [profile, setProfile] = useState<SavedProfile>(emptyProfile)
-  const [url, setUrl] = useState('')
-  const [status, setStatus] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     loadProfile().then(setProfile)
-    getApiBase().then(setUrl)
   }, [])
 
   const heightM = useMemo(() => heightMeters(profile), [profile])
@@ -50,31 +49,58 @@ export default function ProfileScreen() {
     }
   }
 
-  async function ping() {
-    try {
-      await setApiBase(url)
-      const h = await getHealth()
-      setStatus(h.ok === false ? 'API responded but not healthy' : 'Connected to Cric-Lab API')
-    } catch (err) {
-      setStatus(err instanceof Error ? err.message : 'Could not connect')
-    }
-  }
-
   return (
     <Screen>
       <Logo />
-      <Text style={{ marginTop: 18, fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.seam }}>
-        BOWLER
+      <Text style={{ marginTop: 18, fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>
+        ACCOUNT
       </Text>
-      <Text style={{ marginTop: 8, fontSize: 32, fontWeight: '800', color: colors.pitch }}>Profile</Text>
+      <Text style={{ marginTop: 8, fontSize: 32, fontWeight: '800', color: colors.chalk }}>More</Text>
       <Text style={{ marginTop: 8, lineHeight: 22, color: colors.muted }}>
         Height and bowling arm scale pixels to metres and tell the lab which wrist to track.
       </Text>
 
       <View
         style={{
-          marginTop: 20,
-          backgroundColor: 'rgba(255,255,255,0.85)',
+          marginTop: 18,
+          backgroundColor: colors.card,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: colors.line,
+          padding: 16,
+        }}
+      >
+        <Text style={{ fontWeight: '800', color: colors.chalk }}>{user?.name || 'Signed in'}</Text>
+        <Text style={{ marginTop: 4, color: colors.muted }}>{user?.email}</Text>
+        <Pressable
+          onPress={() => router.push('/leaderboard')}
+          style={{
+            marginTop: 14,
+            backgroundColor: colors.lime,
+            borderRadius: 12,
+            paddingVertical: 12,
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ color: colors.onLime, fontWeight: '800' }}>Leaderboard</Text>
+        </Pressable>
+        <Pressable
+          onPress={() =>
+            Alert.alert('Sign out', 'End this session on this phone?', [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Sign out', style: 'destructive', onPress: () => void signOut() },
+            ])
+          }
+          style={{ marginTop: 12, paddingVertical: 10, alignItems: 'center' }}
+        >
+          <Text style={{ color: colors.ball, fontWeight: '800' }}>Sign out</Text>
+        </Pressable>
+      </View>
+
+      <View
+        style={{
+          marginTop: 18,
+          backgroundColor: colors.card,
           borderRadius: 24,
           borderWidth: 1,
           borderColor: colors.line,
@@ -87,15 +113,15 @@ export default function ProfileScreen() {
               width: 64,
               height: 64,
               borderRadius: 32,
-              backgroundColor: colors.pitch,
+              backgroundColor: colors.lime,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Text style={{ color: colors.white, fontSize: 22, fontWeight: '800' }}>{profileInitials(profile)}</Text>
+            <Text style={{ color: colors.onLime, fontSize: 22, fontWeight: '800' }}>{profileInitials(profile)}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 20, fontWeight: '800', color: colors.pitch }}>
+            <Text style={{ fontSize: 20, fontWeight: '800', color: colors.chalk }}>
               {displayName || 'Your bowling profile'}
             </Text>
             <Text style={{ marginTop: 4, color: colors.muted }}>
@@ -208,78 +234,17 @@ export default function ProfileScreen() {
           disabled={saving}
           style={{
             marginTop: 18,
-            backgroundColor: colors.pitch,
+            backgroundColor: colors.lime,
             opacity: saving ? 0.55 : 1,
             borderRadius: 14,
             paddingVertical: 14,
             alignItems: 'center',
           }}
         >
-          <Text style={{ color: colors.white, fontWeight: '800', fontSize: 16 }}>
+          <Text style={{ color: colors.onLime, fontWeight: '800', fontSize: 16 }}>
             {saving ? 'Saving…' : 'Save profile'}
           </Text>
         </Pressable>
-      </View>
-
-      <View
-        style={{
-          marginTop: 18,
-          backgroundColor: colors.white,
-          borderRadius: 16,
-          borderWidth: 1,
-          borderColor: colors.line,
-          padding: 16,
-        }}
-      >
-        <Text style={{ fontWeight: '800', color: colors.pitch }}>Lab connection</Text>
-        <Text style={{ marginTop: 6, fontSize: 12, lineHeight: 18, color: colors.muted }}>{suggestedLanHint()}</Text>
-        <TextInput
-          value={url}
-          onChangeText={setUrl}
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="url"
-          style={fieldInputStyle}
-          placeholder="http://192.168.1.10:8000"
-          placeholderTextColor={colors.muted}
-        />
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
-          <Pressable
-            onPress={async () => {
-              const clean = await setApiBase(url)
-              setUrl(clean)
-              Alert.alert('Saved', `API base is now ${clean}`)
-            }}
-            style={{
-              flex: 1,
-              backgroundColor: colors.pitch,
-              borderRadius: 12,
-              paddingVertical: 12,
-              alignItems: 'center',
-            }}
-          >
-            <Text style={{ color: colors.white, fontWeight: '800' }}>Save</Text>
-          </Pressable>
-          <Pressable
-            onPress={ping}
-            style={{
-              flex: 1,
-              backgroundColor: colors.white,
-              borderWidth: 1,
-              borderColor: colors.pitch,
-              borderRadius: 12,
-              paddingVertical: 12,
-              alignItems: 'center',
-            }}
-          >
-            <Text style={{ color: colors.pitch, fontWeight: '800' }}>Test</Text>
-          </Pressable>
-        </View>
-        {status ? (
-          <Text style={{ marginTop: 12, color: status.startsWith('Connected') ? colors.emerald : colors.ball }}>
-            {status}
-          </Text>
-        ) : null}
       </View>
     </Screen>
   )

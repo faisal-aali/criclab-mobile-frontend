@@ -58,7 +58,7 @@ export default function BallTrackProcessing() {
       <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.seam }}>
         BALL TRACK
       </Text>
-      <Text style={{ marginTop: 8, textAlign: 'center', fontSize: 28, fontWeight: '800', color: colors.pitch }}>
+      <Text style={{ marginTop: 8, textAlign: 'center', fontSize: 28, fontWeight: '800', color: colors.chalk }}>
         {error ? (error.toLowerCase().includes('ball') ? 'No ball found' : 'Tracking failed') : 'Reading the session'}
       </Text>
       <Text style={{ marginTop: 10, textAlign: 'center', color: error ? colors.ball : colors.muted }}>
@@ -93,7 +93,7 @@ export default function BallTrackProcessing() {
               key={s.key}
               style={{
                 fontWeight: on ? '800' : '600',
-                color: done ? colors.emerald : on ? colors.pitch : colors.muted,
+                color: done ? colors.emerald : on ? colors.lime : colors.muted,
               }}
             >
               {done ? '✓ ' : on ? '● ' : '○ '}
@@ -109,9 +109,9 @@ export default function BallTrackProcessing() {
         <View style={{ marginTop: 28, gap: 10 }}>
           <Pressable
             onPress={() => router.replace('/balltrack/record')}
-            style={{ backgroundColor: colors.pitch, borderRadius: 14, paddingVertical: 14, alignItems: 'center' }}
+            style={{ backgroundColor: colors.lime, borderRadius: 14, paddingVertical: 14, alignItems: 'center' }}
           >
-            <Text style={{ color: colors.white, fontWeight: '800' }}>Film again</Text>
+            <Text style={{ color: colors.onLime, fontWeight: '800' }}>Film again</Text>
           </Pressable>
           <Pressable onPress={() => router.replace('/(tabs)/balltrack')} style={{ paddingVertical: 12, alignItems: 'center' }}>
             <Text style={{ color: colors.muted, fontWeight: '700' }}>Back to Ball Track</Text>

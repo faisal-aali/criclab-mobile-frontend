@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Image, Pressable, Text, View } from 'react-native'
+import { metricReady } from '../../../src/api/client'
 import { balltrackAssetUrl, getBalltrackSession } from '../../../src/balltrack/api'
 import type { BallTrackSession } from '../../../src/balltrack/types'
 import { ClipPlayer } from '../../../src/components/ClipPlayer'
@@ -50,8 +51,8 @@ export default function BallTrackSessionScreen() {
       {!loading ? (
         <>
           <Text style={{ fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.seam }}>SESSION</Text>
-          <Text style={{ marginTop: 8, fontSize: 28, fontWeight: '800', color: colors.pitch }}>
-            {data?.title || 'Ball Track'}
+          <Text style={{ marginTop: 8, fontSize: 28, fontWeight: '800', color: colors.chalk }}>
+            {data?.title || 'Ball flight'}
           </Text>
           <Text style={{ marginTop: 6, color: colors.muted }}>
             {data?.delivery_count ?? 0} deliveries
@@ -62,7 +63,7 @@ export default function BallTrackSessionScreen() {
 
           {mapUrl ? (
             <View style={{ marginTop: 16, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: colors.line }}>
-              <Image source={{ uri: mapUrl }} style={{ width: '100%', aspectRatio: 420 / 760, backgroundColor: colors.pitch }} resizeMode="contain" />
+              <Image source={{ uri: mapUrl }} style={{ width: '100%', aspectRatio: 420 / 760, backgroundColor: colors.night }} resizeMode="contain" />
             </View>
           ) : null}
 
@@ -72,20 +73,20 @@ export default function BallTrackSessionScreen() {
             </View>
           ) : null}
 
-          <Text style={{ marginTop: 22, fontSize: 20, fontWeight: '800', color: colors.pitch }}>Balls</Text>
+          <Text style={{ marginTop: 22, fontSize: 20, fontWeight: '800', color: colors.chalk }}>Balls</Text>
           {deliveries.length === 0 && !error ? (
             <EmptyState title="No videos" subtitle="This session has no tracked deliveries." />
           ) : (
             <View style={{ marginTop: 10, gap: 10 }}>
               {deliveries.map((d) => {
-                const speed = d.metrics?.speed_kmh?.value
-                const length = d.metrics?.length_m?.value
+                const speed = d.metrics?.speed_kmh
+                const length = d.metrics?.length_m
                 return (
                   <Pressable
                     key={d.id}
                     onPress={() => router.push(`/balltrack/delivery/${d.id}`)}
                     style={{
-                      backgroundColor: colors.white,
+                      backgroundColor: colors.card,
                       borderRadius: 16,
                       borderWidth: 1,
                       borderColor: colors.line,
@@ -95,10 +96,10 @@ export default function BallTrackSessionScreen() {
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ fontWeight: '800', color: colors.pitch }}>Ball {d.index}</Text>
+                    <Text style={{ fontWeight: '800', color: colors.chalk }}>Ball {d.index}</Text>
                     <Text style={{ color: colors.muted, fontWeight: '600' }}>
-                      {speed != null ? `${speed.toFixed(0)} km/h` : '—'}
-                      {length != null ? ` · ${length.toFixed(1)} m` : ''}
+                      {metricReady(speed) ? `${Number(speed!.value).toFixed(0)} km/h` : '—'}
+                      {metricReady(length) ? ` · ${Number(length!.value).toFixed(1)} m` : ''}
                     </Text>
                   </Pressable>
                 )

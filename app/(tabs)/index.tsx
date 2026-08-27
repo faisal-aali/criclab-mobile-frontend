@@ -57,9 +57,9 @@ export default function AnalyzeScreen() {
 
   async function onAnalyze() {
     if (!profileReady) {
-      Alert.alert('Complete your profile', 'Add height, bowling arm, and the rest of your details on the Profile tab.', [
+      Alert.alert('Complete your profile', 'Add height, bowling arm, and the rest of your details on More.', [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Open Profile', onPress: () => router.push('/profile') },
+        { text: 'Open profile', onPress: () => router.push('/profile') },
       ])
       return
     }
@@ -84,7 +84,7 @@ export default function AnalyzeScreen() {
       })
       router.push(`/processing/${res.job_id}`)
     } catch (err) {
-      Alert.alert('Upload failed', err instanceof Error ? err.message : 'Could not reach the Cric-Lab API. Check Profile.')
+      Alert.alert('Upload failed', err instanceof Error ? err.message : 'Could not reach the CricLab API.')
     } finally {
       setBusy(false)
     }
@@ -93,21 +93,22 @@ export default function AnalyzeScreen() {
   return (
     <Screen>
       <Logo />
-      <Text style={{ marginTop: 18, fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.seam }}>
-        AI BOWLING LABORATORY
+      <Text style={{ marginTop: 18, fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>
+        ACTION · SIDE-ON
       </Text>
-      <Text style={{ marginTop: 8, fontSize: 32, fontWeight: '800', color: colors.pitch, lineHeight: 38 }}>
+      <Text style={{ marginTop: 8, fontSize: 32, fontWeight: '800', color: colors.chalk, lineHeight: 38 }}>
         Analyze every delivery
       </Text>
       <Text style={{ marginTop: 10, fontSize: 15, lineHeight: 22, color: colors.muted }}>
-        Film a side-on clip. Your saved profile scales the delivery into metres and km/h.
+        Film a side-on clip. Your saved profile scales the delivery into metres and km/h. Ball flight is a different tab —
+        do not mix those numbers with this report.
       </Text>
 
       <Pressable
         onPress={() => router.push('/profile')}
         style={{
           marginTop: 16,
-          backgroundColor: colors.white,
+          backgroundColor: colors.card,
           borderRadius: 16,
           borderWidth: 1,
           borderColor: colors.line,
@@ -122,15 +123,15 @@ export default function AnalyzeScreen() {
             width: 44,
             height: 44,
             borderRadius: 22,
-            backgroundColor: colors.pitch,
+            backgroundColor: colors.lime,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Text style={{ color: colors.white, fontWeight: '800' }}>{profileInitials(profile)}</Text>
+          <Text style={{ color: colors.onLime, fontWeight: '800' }}>{profileInitials(profile)}</Text>
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontWeight: '800', color: colors.pitch }}>{displayName || 'Set up your profile'}</Text>
+          <Text style={{ fontWeight: '800', color: colors.chalk }}>{displayName || 'Set up your profile'}</Text>
           <Text style={{ marginTop: 2, color: colors.muted, fontSize: 13 }}>
             {profileReady
               ? `${profile.bowlingArm === 'left' ? 'Left-arm' : 'Right-arm'} ${profile.bowlingStyle}${
@@ -139,20 +140,20 @@ export default function AnalyzeScreen() {
               : 'Tap to add height, arm, and bowling style'}
           </Text>
         </View>
-        <Text style={{ color: colors.seam, fontWeight: '800' }}>Edit</Text>
+        <Text style={{ color: colors.lime, fontWeight: '800' }}>Edit</Text>
       </Pressable>
 
       <View
         style={{
           marginTop: 16,
-          backgroundColor: colors.white,
+          backgroundColor: colors.card,
           borderRadius: 16,
           borderWidth: 1,
           borderColor: colors.line,
           padding: 14,
         }}
       >
-        <Text style={{ fontWeight: '800', color: colors.pitch }}>Film it this way</Text>
+        <Text style={{ fontWeight: '800', color: colors.chalk }}>Film it this way</Text>
         <Text style={{ marginTop: 6, color: colors.muted, lineHeight: 20 }}>
           Side-on camera · full body in frame from run-up through follow-through · ball visible after it leaves the
           hand.
@@ -162,41 +163,41 @@ export default function AnalyzeScreen() {
       <View
         style={{
           marginTop: 18,
-          backgroundColor: 'rgba(255,255,255,0.85)',
+          backgroundColor: colors.card,
           borderRadius: 24,
           borderWidth: 1,
           borderColor: colors.line,
           padding: 16,
         }}
       >
-        <Text style={{ fontSize: 20, fontWeight: '800', color: colors.pitch }}>Bowling video</Text>
+        <Text style={{ fontSize: 20, fontWeight: '800', color: colors.chalk }}>Bowling video</Text>
 
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
           <Pressable
             onPress={() => pickVideo(false)}
             style={{
               flex: 1,
-              backgroundColor: colors.pitch,
+              backgroundColor: colors.lime,
               borderRadius: 12,
               paddingVertical: 12,
               alignItems: 'center',
             }}
           >
-            <Text style={{ color: colors.white, fontWeight: '700' }}>Library</Text>
+            <Text style={{ color: colors.onLime, fontWeight: '700' }}>Library</Text>
           </Pressable>
           <Pressable
             onPress={() => pickVideo(true)}
             style={{
               flex: 1,
-              backgroundColor: colors.white,
+              backgroundColor: colors.charcoal,
               borderRadius: 12,
               borderWidth: 1,
-              borderColor: colors.pitch,
+              borderColor: colors.lime,
               paddingVertical: 12,
               alignItems: 'center',
             }}
           >
-            <Text style={{ color: colors.pitch, fontWeight: '700' }}>Record</Text>
+            <Text style={{ color: colors.lime, fontWeight: '700' }}>Record</Text>
           </Pressable>
         </View>
         {video ? <Text style={{ marginTop: 8, fontSize: 12, color: colors.muted }}>{video.name}</Text> : null}
@@ -225,14 +226,14 @@ export default function AnalyzeScreen() {
           disabled={busy || !ready}
           style={{
             marginTop: 18,
-            backgroundColor: colors.pitch,
+            backgroundColor: colors.lime,
             opacity: busy || !ready ? 0.55 : 1,
             borderRadius: 14,
             paddingVertical: 14,
             alignItems: 'center',
           }}
         >
-          <Text style={{ color: colors.white, fontWeight: '800', fontSize: 16 }}>
+          <Text style={{ color: colors.onLime, fontWeight: '800', fontSize: 16 }}>
             {busy ? 'Uploading…' : ready ? 'Analyze delivery' : 'Complete details to continue'}
           </Text>
         </Pressable>

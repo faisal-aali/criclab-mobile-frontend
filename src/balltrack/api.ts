@@ -1,26 +1,9 @@
 import { getApiBase } from '../api/config'
+import { authFetch } from '../api/http'
 import type { BallTrackDelivery, BallTrackJob, BallTrackSession, Box, Calibration } from './types'
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const base = await getApiBase()
-  let res: Response
-  try {
-    res = await fetch(`${base}${path}`, init)
-  } catch (err) {
-    const reason = err instanceof Error ? err.message : 'Network request failed'
-    throw new Error(`${reason} (${base}). Check Profile → Lab connection.`)
-  }
-  if (!res.ok) {
-    let detail = res.statusText
-    try {
-      const data = await res.json()
-      detail = data.detail || data.message || detail
-    } catch {
-      /* ignore */
-    }
-    throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail))
-  }
-  return res.json() as Promise<T>
+function request<T>(path: string, init?: RequestInit): Promise<T> {
+  return authFetch<T>(path, init)
 }
 
 export async function balltrackAssetUrl(path?: string | null) {

@@ -117,7 +117,7 @@ function Section({ title, body }: { title: string; body?: string }) {
   return (
     <View
       style={{
-        backgroundColor: colors.white,
+        backgroundColor: colors.card,
         borderRadius: 16,
         borderWidth: 1,
         borderColor: colors.line,
@@ -125,7 +125,7 @@ function Section({ title, body }: { title: string; body?: string }) {
         marginBottom: 10,
       }}
     >
-      <Text style={{ fontWeight: '800', color: colors.pitch }}>{title}</Text>
+      <Text style={{ fontWeight: '800', color: colors.chalk }}>{title}</Text>
       <Text style={{ marginTop: 8, lineHeight: 20, color: colors.ink }}>{body?.trim() || '—'}</Text>
     </View>
   )
@@ -208,7 +208,7 @@ export default function ResultsScreen() {
   return (
     <Screen>
       <Text style={{ fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.seam }}>ANALYSIS RESULTS</Text>
-      <Text style={{ marginTop: 6, fontSize: 30, fontWeight: '800', color: colors.pitch }}>
+      <Text style={{ marginTop: 6, fontSize: 30, fontWeight: '800', color: colors.chalk }}>
         {data.player_name || 'Bowler'}
       </Text>
       <Text style={{ marginTop: 6, color: colors.muted }}>
@@ -231,13 +231,13 @@ export default function ResultsScreen() {
             flex: 1,
             borderWidth: 1,
             borderColor: colors.line,
-            backgroundColor: colors.white,
+            backgroundColor: colors.card,
             borderRadius: 12,
             paddingVertical: 12,
             alignItems: 'center',
           }}
         >
-          <Text style={{ fontWeight: '800', color: colors.pitch }}>New upload</Text>
+          <Text style={{ fontWeight: '800', color: colors.chalk }}>New upload</Text>
         </Pressable>
         {pdfHref ? (
           <Pressable
@@ -279,7 +279,7 @@ export default function ResultsScreen() {
           }}
           style={{
             marginTop: 10,
-            backgroundColor: colors.white,
+            backgroundColor: colors.card,
             borderRadius: 12,
             borderWidth: 1,
             borderColor: colors.line,
@@ -287,7 +287,7 @@ export default function ResultsScreen() {
           }}
         >
           <Text style={{ fontSize: 11, fontWeight: '800', color: colors.muted }}>SHARE PROCESSED VIDEO</Text>
-          <Text numberOfLines={2} style={{ marginTop: 4, fontSize: 12, color: colors.pitch }}>
+          <Text numberOfLines={2} style={{ marginTop: 4, fontSize: 12, color: colors.lime }}>
             {copied ? 'Copied' : cloudVideo}
           </Text>
         </Pressable>
@@ -296,7 +296,7 @@ export default function ResultsScreen() {
       <View
         style={{
           marginTop: 16,
-          backgroundColor: colors.pitch,
+          backgroundColor: colors.charcoal,
           borderRadius: 24,
           padding: 18,
         }}
@@ -336,14 +336,14 @@ export default function ResultsScreen() {
         <View
           style={{
             marginTop: 16,
-            backgroundColor: colors.white,
+            backgroundColor: colors.card,
             borderRadius: 16,
             borderWidth: 1,
             borderColor: colors.line,
             padding: 14,
           }}
         >
-          <Text style={{ fontWeight: '800', color: colors.pitch }}>Kinematic sequence</Text>
+          <Text style={{ fontWeight: '800', color: colors.chalk }}>Kinematic sequence</Text>
           <View style={{ marginTop: 12, gap: 8 }}>
             {seq.map((item) => {
               const seen = item.frame != null
@@ -354,15 +354,15 @@ export default function ResultsScreen() {
                       width: 28,
                       height: 28,
                       borderRadius: 14,
-                      backgroundColor: seen ? colors.pitch : colors.mist,
+                      backgroundColor: seen ? colors.lime : colors.charcoal,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Text style={{ color: seen ? colors.white : colors.muted, fontWeight: '800' }}>{item.n}</Text>
+                    <Text style={{ color: seen ? colors.onLime : colors.muted, fontWeight: '800' }}>{item.n}</Text>
                   </View>
                   <View>
-                    <Text style={{ fontWeight: '700', color: colors.pitch }}>{item.label}</Text>
+                    <Text style={{ fontWeight: '700', color: colors.chalk }}>{item.label}</Text>
                     <Text style={{ fontSize: 11, color: colors.muted }}>
                       {seen ? (item.estimated ? 'Estimated' : 'Measured') : 'Not seen'}
                     </Text>
@@ -386,7 +386,7 @@ export default function ResultsScreen() {
         </View>
       </View>
 
-      <Text style={{ marginTop: 22, marginBottom: 10, fontSize: 18, fontWeight: '800', color: colors.pitch }}>
+      <Text style={{ marginTop: 22, marginBottom: 10, fontSize: 18, fontWeight: '800', color: colors.chalk }}>
         Measured metrics
       </Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
@@ -404,7 +404,7 @@ export default function ResultsScreen() {
         <MetricCard label="Trunk-line proxy" metric={m.trunk_rotation_speed_deg_s} />
       </View>
 
-      <Text style={{ marginTop: 22, marginBottom: 10, fontSize: 18, fontWeight: '800', color: colors.pitch }}>
+      <Text style={{ marginTop: 22, marginBottom: 10, fontSize: 18, fontWeight: '800', color: colors.chalk }}>
         AI coaching
       </Text>
       <Section title="Summary" body={a.summary} />

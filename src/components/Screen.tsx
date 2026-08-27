@@ -24,7 +24,7 @@ export function Screen({
   )
 
   return (
-    <LinearGradient colors={['#F7FAF8', '#E8F0EA', '#DFEAE3']} style={{ flex: 1 }}>
+    <LinearGradient colors={[colors.night, colors.charcoal, '#080e10']} style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}

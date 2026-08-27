@@ -22,12 +22,12 @@ export function ChoiceRow<T extends string>({
               borderRadius: 999,
               paddingHorizontal: 14,
               paddingVertical: 8,
-              backgroundColor: on ? colors.pitch : colors.white,
+              backgroundColor: on ? colors.lime : colors.card,
               borderWidth: 1,
-              borderColor: on ? colors.pitch : colors.line,
+              borderColor: on ? colors.lime : colors.line,
             }}
           >
-            <Text style={{ fontWeight: '700', fontSize: 13, color: on ? colors.white : colors.pitch }}>
+            <Text style={{ fontWeight: '700', fontSize: 13, color: on ? colors.onLime : colors.chalk }}>
               {o.label}
             </Text>
           </Pressable>
@@ -39,7 +39,7 @@ export function ChoiceRow<T extends string>({
 
 export function FieldLabel({ children }: { children: string }) {
   return (
-    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.pitch, marginTop: 14 }}>{children}</Text>
+    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.chalk, marginTop: 14 }}>{children}</Text>
   )
 }
 
@@ -47,10 +47,10 @@ export const fieldInputStyle = {
   marginTop: 6,
   borderWidth: 1,
   borderColor: colors.line,
-  backgroundColor: colors.white,
+  backgroundColor: colors.charcoal,
   borderRadius: 12,
   paddingHorizontal: 12,
   paddingVertical: 12,
   fontSize: 16,
-  color: colors.ink,
+  color: colors.chalk,
 } as const

@@ -1,7 +1,7 @@
-# Cric-Lab AI — agent instructions
+# CricLab — agent instructions
 
-This repository is **Cric-Lab AI**, the Expo / React Native client for the
-Cric-Lab bowling laboratory.
+This repository is **CricLab**, the Expo / React Native client for the CricLab
+bowling laboratory.
 
 ## Read first
 
@@ -16,11 +16,14 @@ If a user prompt conflicts with `systemPatterns.md`, follow the Memory Bank and 
 
 ## What to build
 
-A phone UI that uploads a **side-on bowling** clip to the FastAPI lab and shows
-the same metrics, overlay, Gemma notes, and PDF as the web app.
+A phone UI that signs in to `criclab-web-backend`, uploads an **Action**
+(side-on) clip or a **Ball flight** session, and shows the same metrics,
+overlay, Gemma notes, and PDF as the web workspace.
 
 Do **not** rebuild pose / ball tracking / overlay encode / ReportLab / Ollama
-in this repo. That code lives in `CricLabMLReview`.
+in this repo. That code lives in `/Users/macbookpro/Desktop/Cric-Lab/criclab-web-backend`.
+
+Do not mix Action and Ball flight numbers. Do not invent km/h. Auth is required.
 
 ## Expo docs
 

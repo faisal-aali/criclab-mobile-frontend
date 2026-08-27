@@ -5,13 +5,12 @@
 
 ## Goal
 
-Ship a phone client that can run the Cric-Lab bowling workflow against the
-existing FastAPI lab: profile → video → job poll → results → history.
+Ship a phone client that can run the CricLab bowling workflow against the
+FastAPI lab: profile → video → job poll → results → history.
 
 ## Done when
 
-- [x] Expo Router tabs: Analyze, History, Settings
-- [x] Stack: processing, results
+- [x] Expo Router tabs + stack (processing, results)
 - [x] Typed API client aligned with lab JSON (`metricReady`)
 - [x] Configurable API base (sim / emulator / LAN)
 - [x] Pick or record video; multipart upload
@@ -21,8 +20,8 @@ existing FastAPI lab: profile → video → job poll → results → history.
 
 - MediaPipe on device
 - Changing metric formulas (lab repo)
-- GitHub publish (user creates a new remote)
 
 ## Notes
 
-Sibling lab: `/Users/macbookpro/Desktop/CricLabMLReview`.
+Sibling lab is now `/Users/macbookpro/Desktop/Cric-Lab/criclab-web-backend`
+(was CricLabMLReview). See TASK-003 for auth + UI alignment.
