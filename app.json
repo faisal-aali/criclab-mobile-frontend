@@ -31,7 +31,7 @@
       "package": "com.criclab.app",
       "icon": "./assets/icon.png",
       "adaptiveIcon": {
-        "backgroundColor": "#05090a",
+        "backgroundColor": "#c5fb38",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
