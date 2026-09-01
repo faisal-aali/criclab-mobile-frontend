@@ -46,7 +46,7 @@ export default function BallTrackSessionScreen() {
   const deliveries = data?.deliveries || []
 
   return (
-    <Screen safeTop={false}>
+    <Screen safeTop={false} safeBottom>
       {loading ? <SessionShimmer /> : null}
       {!loading ? (
         <>

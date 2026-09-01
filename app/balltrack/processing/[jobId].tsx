@@ -3,17 +3,13 @@ import { useEffect, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { getBalltrackJob } from '../../../src/balltrack/api'
 import type { BallTrackJob } from '../../../src/balltrack/types'
+import { ProcessingStages } from '../../../src/components/ProcessingStages'
 import { Screen } from '../../../src/components/Screen'
+import { BALL_FLIGHT_STAGES } from '../../../src/processing/stages'
 import { ProcessingShimmer } from '../../../src/shimmer'
 import { colors } from '../../../src/theme'
 
-const STAGES = [
-  { key: 'calibrate', label: 'Calibrating stumps' },
-  { key: 'detect', label: 'Finding the ball' },
-  { key: 'track', label: 'Fitting trajectories' },
-  { key: 'metrics', label: 'Measuring speed & length' },
-  { key: 'render', label: 'Building pitch map' },
-]
+const POLL_MS = 500
 
 export default function BallTrackProcessing() {
   const { jobId } = useLocalSearchParams<{ jobId: string }>()
@@ -41,68 +37,64 @@ export default function BallTrackProcessing() {
         setError(err instanceof Error ? err.message : 'Could not load job')
       }
     }
-    tick()
-    const timer = setInterval(tick, 1500)
+    void tick()
+    const timer = setInterval(() => void tick(), POLL_MS)
     return () => {
       alive = false
       clearInterval(timer)
     }
   }, [jobId, router])
 
-  const progress = job?.progress ?? 0
-  const stageKey = job?.stage === 'done' || job?.stage === 'queued' ? 'calibrate' : job?.stage
-  const currentIdx = Math.max(0, STAGES.findIndex((s) => s.key === stageKey))
+  const failed = Boolean(error) || job?.status === 'failed'
+  const noBall = (error || '').toLowerCase().includes('ball')
 
   return (
-    <Screen safeTop={false}>
-      <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.seam }}>
-        BALL TRACK
+    <Screen safeTop={false} safeBottom>
+      <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>
+        BALL FLIGHT
       </Text>
       <Text style={{ marginTop: 8, textAlign: 'center', fontSize: 28, fontWeight: '800', color: colors.chalk }}>
-        {error ? (error.toLowerCase().includes('ball') ? 'No ball found' : 'Tracking failed') : 'Reading the session'}
+        {failed ? (noBall ? 'No ball found' : 'We could not finish this one') : 'Tracking the ball'}
       </Text>
-      <Text style={{ marginTop: 10, textAlign: 'center', color: error ? colors.ball : colors.muted }}>
-        {error || job?.message || 'Starting…'}
-      </Text>
-      {error ? (
-        <Text style={{ marginTop: 8, textAlign: 'center', color: colors.muted, lineHeight: 20 }}>
-          Empty clips, walking around, or anything that is not a cricket ball in flight will not get a speed.
+      <View
+        style={{
+          marginTop: 12,
+          alignSelf: 'center',
+          borderRadius: 999,
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          backgroundColor: failed ? colors.roseBg : 'rgba(182,242,74,0.12)',
+        }}
+      >
+        <Text style={{ fontSize: 12, fontWeight: '800', color: failed ? colors.ball : colors.lime }}>
+          {failed ? 'Stopped' : `Ball flight — ${Math.round(job?.progress ?? 0)}%`}
         </Text>
-      ) : null}
+      </View>
 
       {!job && !error ? (
-        <ProcessingShimmer rows={5} />
+        <ProcessingShimmer rows={8} />
       ) : (
-        <>
-      <View style={{ marginTop: 22, height: 10, borderRadius: 999, backgroundColor: colors.line, overflow: 'hidden' }}>
-        <View
-          style={{
-            width: `${Math.max(0, Math.min(100, progress))}%`,
-            height: 10,
-            backgroundColor: error ? colors.ball : colors.seam,
-          }}
+        <ProcessingStages
+          stages={BALL_FLIGHT_STAGES}
+          progress={job?.progress}
+          stage={job?.stage}
+          doneKey="agent"
+          status={job?.status}
+          message={error || job?.message}
+          etaSeconds={job?.eta_seconds}
+          stageDetail={job?.stage_detail}
+          failed={failed}
         />
-      </View>
+      )}
 
-      <View style={{ marginTop: 22, gap: 10 }}>
-        {STAGES.map((s, i) => {
-          const on = i === currentIdx && !error
-          const done = i < currentIdx
-          return (
-            <Text
-              key={s.key}
-              style={{
-                fontWeight: on ? '800' : '600',
-                color: done ? colors.emerald : on ? colors.lime : colors.muted,
-              }}
-            >
-              {done ? '✓ ' : on ? '● ' : '○ '}
-              {s.label}
-            </Text>
-          )
-        })}
-      </View>
-        </>
+      {failed ? (
+        <Text style={{ marginTop: 12, textAlign: 'center', color: colors.muted, lineHeight: 20 }}>
+          Empty clips, walking around, or anything that is not a cricket ball in flight will not get a speed.
+        </Text>
+      ) : (
+        <Text style={{ marginTop: 16, textAlign: 'center', fontSize: 13, lineHeight: 20, color: colors.muted }}>
+          Every number is checked before it is shown. You can leave this page — processing continues on the lab.
+        </Text>
       )}
 
       {error ? (

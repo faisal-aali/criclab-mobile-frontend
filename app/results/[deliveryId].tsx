@@ -177,21 +177,21 @@ export default function ResultsScreen() {
 
   if (loading) {
     return (
-      <Screen safeTop={false}>
+      <Screen safeTop={false} safeBottom>
         <ResultsShimmer />
       </Screen>
     )
   }
   if (error && !data) {
     return (
-      <Screen safeTop={false}>
+      <Screen safeTop={false} safeBottom>
         <EmptyState title="No videos" subtitle={error} />
       </Screen>
     )
   }
   if (!data) {
     return (
-      <Screen safeTop={false}>
+      <Screen safeTop={false} safeBottom>
         <EmptyState title="No history" subtitle="This delivery could not be found." />
       </Screen>
     )
@@ -208,7 +208,7 @@ export default function ResultsScreen() {
   const cloudVideo = data.artifacts?.cloudinary_video_url
 
   return (
-    <Screen safeTop={false}>
+    <Screen safeTop={false} safeBottom>
       <Text style={{ fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.seam }}>ANALYSIS RESULTS</Text>
       <Text style={{ marginTop: 6, fontSize: 30, fontWeight: '800', color: colors.chalk }}>
         {data.player_name || 'Bowler'}

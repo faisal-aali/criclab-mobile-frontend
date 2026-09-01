@@ -19,7 +19,7 @@ export function AuthScreen({
   footer?: ReactNode
 }) {
   return (
-    <Screen>
+    <Screen safeBottom>
       <Logo />
       {kicker ? (
         <Text style={{ marginTop: 22, fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>

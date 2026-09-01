@@ -5,16 +5,23 @@ function request<T>(path: string, init?: RequestInit): Promise<T> {
   return authFetch<T>(path, init)
 }
 
+export type StageDetail = {
+  current: number
+  total: number
+  unit?: string
+}
+
 export type Job = {
   id: string
   video_id: string
-  status: 'queued' | 'processing' | 'analyzing' | 'completed' | 'failed'
+  status: 'queued' | 'claimed' | 'processing' | 'analyzing' | 'completed' | 'failed' | string
   progress: number
   stage?: string
   message?: string
   delivery_id?: string
   error?: string
   eta_seconds?: number | null
+  stage_detail?: StageDetail | null
 }
 
 export type MetricValue = {

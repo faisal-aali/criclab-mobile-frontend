@@ -74,7 +74,7 @@ export default function TicketThreadScreen() {
 
   if (loading) {
     return (
-      <Screen safeTop={false}>
+      <Screen safeTop={false} safeBottom>
         <ListShimmer rows={4} />
       </Screen>
     )
@@ -82,7 +82,7 @@ export default function TicketThreadScreen() {
 
   if (!ticket) {
     return (
-      <Screen safeTop={false}>
+      <Screen safeTop={false} safeBottom>
         <EmptyState title="Ticket not found" subtitle={error || 'It may belong to another account.'} />
         <Pressable onPress={() => router.replace('/tickets')} style={{ marginTop: 16, alignItems: 'center' }}>
           <Text style={{ color: colors.lime, fontWeight: '800' }}>All tickets</Text>
@@ -94,7 +94,7 @@ export default function TicketThreadScreen() {
   const closed = ticket.status === 'closed'
 
   return (
-    <Screen safeTop={false}>
+    <Screen safeTop={false} safeBottom>
       <Pressable
         onPress={() => {
           if (router.canGoBack()) router.back()

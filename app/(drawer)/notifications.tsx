@@ -64,7 +64,7 @@ export default function NotificationsScreen() {
   }
 
   return (
-    <Screen safeTop={false}>
+    <Screen safeTop={false} safeBottom>
       <Text style={{ fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>INBOX</Text>
       <Text style={{ marginTop: 8, fontSize: 28, fontWeight: '800', color: colors.chalk }}>Notifications</Text>
       <Text style={{ marginTop: 8, color: colors.muted, lineHeight: 22 }}>

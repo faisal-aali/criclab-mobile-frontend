@@ -3,6 +3,7 @@ import { DrawerContentScrollView, type DrawerContentComponentProps } from '@reac
 import { type Href, usePathname, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Alert, Pressable, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { notifications } from '../api/notifications'
 import { support } from '../api/support'
 import { useAuth } from '../auth/AuthProvider'
@@ -78,11 +79,17 @@ export function DrawerContent(props: DrawerContentComponentProps) {
   }, [pathname])
 
   const initials = (user?.name || user?.email || 'CL').slice(0, 2).toUpperCase()
+  const insets = useSafeAreaInsets()
 
   return (
     <DrawerContentScrollView
       {...props}
-      contentContainerStyle={{ flexGrow: 1, paddingTop: 12, paddingBottom: 24 }}
+      contentInsetAdjustmentBehavior="never"
+      contentContainerStyle={{
+        flexGrow: 1,
+        paddingTop: insets.top + 16,
+        paddingBottom: insets.bottom + 20,
+      }}
       style={{ backgroundColor: colors.charcoal }}
     >
       <View style={{ paddingHorizontal: 18, paddingBottom: 18, borderBottomWidth: 1, borderBottomColor: colors.line }}>

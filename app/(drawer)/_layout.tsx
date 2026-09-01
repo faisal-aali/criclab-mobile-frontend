@@ -18,6 +18,7 @@ export default function DrawerLayout() {
         headerTitleAlign: 'center',
         drawerType: 'front',
         drawerStyle: { backgroundColor: colors.charcoal, width: 300 },
+        drawerHideStatusBarOnOpen: false,
         overlayColor: 'rgba(0,0,0,0.55)',
         sceneStyle: { backgroundColor: colors.night },
       }}

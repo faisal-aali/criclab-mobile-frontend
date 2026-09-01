@@ -86,7 +86,7 @@ export default function TicketsScreen() {
   const ready = subject.trim().length >= 3 && body.trim().length >= 10
 
   return (
-    <Screen safeTop={false}>
+    <Screen safeTop={false} safeBottom>
       <Text style={{ fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>SUPPORT</Text>
       <Text style={{ marginTop: 8, fontSize: 28, fontWeight: '800', color: colors.chalk }}>Tickets</Text>
       <Text style={{ marginTop: 8, color: colors.muted, lineHeight: 22 }}>

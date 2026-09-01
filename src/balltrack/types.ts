@@ -18,11 +18,13 @@ export type Metric = {
 export type BallTrackJob = {
   id: string
   session_id?: string
-  status: 'queued' | 'processing' | 'completed' | 'failed' | string
+  status: 'queued' | 'claimed' | 'processing' | 'completed' | 'failed' | string
   progress: number
   stage?: string
   message?: string
   error?: string
+  eta_seconds?: number | null
+  stage_detail?: { current: number; total: number; unit?: string } | null
 }
 
 export type BallTrackDelivery = {

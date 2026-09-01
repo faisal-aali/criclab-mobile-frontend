@@ -20,7 +20,7 @@ export default function LeaderboardScreen() {
   }, [])
 
   return (
-    <Screen safeTop={false}>
+    <Screen safeTop={false} safeBottom>
       <Text style={{ fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>ACTION</Text>
       <Text style={{ marginTop: 8, fontSize: 30, fontWeight: '800', color: colors.chalk }}>Leaderboard</Text>
       <Text style={{ marginTop: 8, color: colors.muted, lineHeight: 22 }}>

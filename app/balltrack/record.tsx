@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
-import { CameraView, useCameraPermissions } from 'expo-camera'
+import { useCameraPermissions } from 'expo-camera'
+import { useIsFocused } from '@react-navigation/native'
 import { useRouter } from 'expo-router'
 import { useRef, useState } from 'react'
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
@@ -7,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { detectStumps, uploadSession } from '../../src/balltrack/api'
 import { DraggableStumpBox, PitchOverlay } from '../../src/balltrack/pitchGuide'
 import { BATTER_BOX, BOWLER_BOX, type Box } from '../../src/balltrack/types'
+import { SlowMoCamera, hasHighSpeedCameraNative, type SlowMoCameraHandle } from '../../src/camera/SlowMoCamera'
 import { colors } from '../../src/theme'
 
 type Phase = 'align' | 'armed'
@@ -14,8 +16,10 @@ type Phase = 'align' | 'armed'
 export default function BallTrackRecord() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const cameraRef = useRef<CameraView>(null)
+  const cameraRef = useRef<SlowMoCameraHandle>(null)
+  const isFocused = useIsFocused()
   const [permission, requestPermission] = useCameraPermissions()
+  const [format, setFormat] = useState(hasHighSpeedCameraNative() ? '1080p · 120 fps' : '1080p')
   const [phase, setPhase] = useState<Phase>('align')
   const [recording, setRecording] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -36,7 +40,7 @@ export default function BallTrackRecord() {
     }
     setFinding(true)
     try {
-      const shot = await cameraRef.current?.takePictureAsync({ quality: 0.7, shutterSound: false })
+      const shot = await cameraRef.current?.takePicture()
       if (!shot?.uri) {
         Alert.alert('No frame', 'Could not capture the camera frame.')
         return
@@ -67,12 +71,12 @@ export default function BallTrackRecord() {
       }
     }
     if (recording) {
-      cameraRef.current?.stopRecording()
+      cameraRef.current?.stop()
       return
     }
     setRecording(true)
     try {
-      const clip = await cameraRef.current?.recordAsync({ maxDuration: 180 })
+      const clip = await cameraRef.current?.record({ maxDuration: 180 })
       if (!clip?.uri) return
       setBusy(true)
       const res = await uploadSession({
@@ -95,14 +99,14 @@ export default function BallTrackRecord() {
   return (
     <View style={styles.fill} onLayout={(e) => setLayout({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
       {permission.granted ? (
-        <CameraView
+        <SlowMoCamera
           ref={cameraRef}
           style={StyleSheet.absoluteFill}
-          facing="back"
+          isActive={isFocused}
           mode={phase === 'armed' ? 'video' : 'picture'}
-          mute
-          videoQuality="720p"
-          pointerEvents="none"
+          enablePhoto
+          enableVideo={phase === 'armed'}
+          onFormat={setFormat}
         />
       ) : (
         <View style={[styles.fill, { backgroundColor: colors.pitchDeep, alignItems: 'center', justifyContent: 'center' }]}>
@@ -124,13 +128,16 @@ export default function BallTrackRecord() {
       )}
 
       <View style={{ position: 'absolute', top: insets.top + 8, left: 12, right: 12, flexDirection: 'row', alignItems: 'flex-start', zIndex: 12 }}>
-        {phase === 'armed' ? (
-          <Pressable onPress={() => setPhase('align')} disabled={recording || finding} style={styles.pill}>
-            <Text style={styles.pillText}>Resize</Text>
-          </Pressable>
-        ) : (
-          <View style={{ width: 72 }} />
-        )}
+        <View>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{format}</Text>
+          </View>
+          {phase === 'armed' ? (
+            <Pressable onPress={() => setPhase('align')} disabled={recording || finding} style={[styles.pill, { marginTop: 8 }]}>
+              <Text style={styles.pillText}>Resize</Text>
+            </Pressable>
+          ) : null}
+        </View>
         <View style={styles.banner}>
           <Text style={styles.bannerText}>
             {finding
@@ -138,7 +145,7 @@ export default function BallTrackRecord() {
               : phase === 'align'
                 ? 'Resize the boxes so both stump sets are inside, then Continue. The lab finds the wickets and draws the line between them.'
                 : recording
-                  ? 'Recording… bowl as usual, then stop when the session is done.'
+                  ? `Recording ${format}… bowl as usual, then stop when the session is done.`
                   : 'Resize if the boxes missed the stumps, then Continue again.'}
           </Text>
         </View>
@@ -197,6 +204,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   pillText: { fontWeight: '800', color: '#0F172A', fontSize: 13 },
+  badge: {
+    backgroundColor: 'rgba(182,242,74,0.95)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    alignSelf: 'flex-start',
+  },
+  badgeText: { fontWeight: '800', color: '#05090a', fontSize: 12 },
   closeBtn: {
     width: 36,
     height: 36,

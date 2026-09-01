@@ -1,23 +1,15 @@
 import { Link, useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 import { getJob, type Job } from '../../src/api/client'
+import { ProcessingStages } from '../../src/components/ProcessingStages'
 import { Screen } from '../../src/components/Screen'
 import { useFallbackBack } from '../../src/nav/back'
+import { ACTION_STAGES, ACTION_TIPS } from '../../src/processing/stages'
 import { ProcessingShimmer } from '../../src/shimmer'
 import { colors } from '../../src/theme'
 
-const STAGES = [
-  { key: 'extract', label: 'Reading video' },
-  { key: 'pose', label: 'Estimating bowler pose' },
-  { key: 'action', label: 'Detecting release & phases' },
-  { key: 'ball', label: 'Tracking ball flight' },
-  { key: 'metrics', label: 'Calculating metrics' },
-  { key: 'render', label: 'Rendering slow-motion overlay' },
-  { key: 'upload', label: 'Saving processed video' },
-  { key: 'agent', label: 'AI coaching analysis' },
-  { key: 'pdf', label: 'Building PDF report' },
-]
+const POLL_MS = 500
 
 export default function ProcessingScreen() {
   const { jobId } = useLocalSearchParams<{ jobId: string }>()
@@ -25,6 +17,7 @@ export default function ProcessingScreen() {
   useFallbackBack()
   const [job, setJob] = useState<Job | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [tip, setTip] = useState(0)
 
   useEffect(() => {
     if (!jobId) return
@@ -46,89 +39,100 @@ export default function ProcessingScreen() {
         setError(err instanceof Error ? err.message : 'Could not load job')
       }
     }
-    tick()
-    const timer = setInterval(tick, 1500)
+    void tick()
+    const timer = setInterval(() => void tick(), POLL_MS)
     return () => {
       alive = false
       clearInterval(timer)
     }
   }, [jobId, router])
 
-  const progress = job?.progress ?? 0
-  const stageKey = job?.stage === 'done' || job?.stage === 'queued' ? 'extract' : job?.stage
-  const currentIdx = Math.max(0, STAGES.findIndex((s) => s.key === stageKey))
+  useEffect(() => {
+    const rotate = setInterval(() => setTip((t) => (t + 1) % ACTION_TIPS.length), 6500)
+    return () => clearInterval(rotate)
+  }, [])
+
   const failed = job?.status === 'failed'
+  const current = ACTION_TIPS[tip]
 
   return (
-    <Screen safeTop={false}>
-      <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.seam }}>
-        PROCESSING
+    <Screen safeTop={false} safeBottom>
+      <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>
+        WORKING ON IT
       </Text>
       <Text style={{ marginTop: 8, textAlign: 'center', fontSize: 28, fontWeight: '800', color: colors.chalk }}>
         Reading the delivery
       </Text>
-      <Text style={{ marginTop: 10, textAlign: 'center', color: colors.muted }}>
-        {job?.message || 'Starting pipeline…'}
-      </Text>
-      <Text style={{ marginTop: 4, textAlign: 'center', fontSize: 12, color: colors.muted }}>
-        Pose on a long clip can take several minutes. Keep this screen open.
-        {job?.eta_seconds != null ? ` About ${Math.max(1, Math.round(job.eta_seconds))}s left.` : ''}
-      </Text>
+      <View
+        style={{
+          marginTop: 12,
+          alignSelf: 'center',
+          borderRadius: 999,
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          backgroundColor: failed ? colors.roseBg : 'rgba(182,242,74,0.12)',
+        }}
+      >
+        <Text style={{ fontSize: 12, fontWeight: '800', color: failed ? colors.ball : colors.lime }}>
+          {failed ? 'Stopped' : `In progress — ${Math.round(job?.progress ?? 0)}%`}
+        </Text>
+      </View>
 
       {!job && !error ? (
-        <ProcessingShimmer rows={9} />
+        <ProcessingShimmer rows={11} />
       ) : (
-        <>
-      <View style={{ marginTop: 22, height: 10, borderRadius: 999, backgroundColor: colors.line, overflow: 'hidden' }}>
+        <ProcessingStages
+          stages={ACTION_STAGES}
+          progress={job?.progress}
+          stage={job?.stage}
+          doneKey="pdf"
+          status={job?.status}
+          message={job?.message}
+          etaSeconds={job?.eta_seconds}
+          stageDetail={job?.stage_detail}
+          failed={failed}
+        />
+      )}
+
+      {!failed ? (
         <View
           style={{
-            width: `${Math.max(0, Math.min(100, progress))}%`,
-            height: 10,
-            backgroundColor: colors.seam,
+            marginTop: 20,
+            backgroundColor: colors.card,
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: colors.line,
+            padding: 16,
           }}
-        />
-      </View>
-      <Text style={{ marginTop: 8, textAlign: 'center', fontWeight: '700', color: colors.chalk }}>{progress}%</Text>
-
-      <View style={{ marginTop: 20, gap: 10 }}>
-        {STAGES.map((s, i) => {
-          const done = !failed && (currentIdx > i || job?.status === 'completed')
-          const active = !failed && currentIdx === i && job?.status !== 'completed'
-          return (
-            <View key={s.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        >
+          <Text style={{ fontSize: 10, fontWeight: '800', letterSpacing: 1.8, color: colors.lime }}>{current.tag}</Text>
+          <Text style={{ marginTop: 8, fontSize: 14, lineHeight: 21, color: colors.muted }}>{current.body}</Text>
+          <View style={{ marginTop: 14, flexDirection: 'row', gap: 6 }}>
+            {ACTION_TIPS.map((item, i) => (
               <View
+                key={item.body}
                 style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: 13,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor:
-                    failed && currentIdx === i
-                      ? colors.ball
-                      : done
-                        ? colors.emerald
-                        : active
-                          ? colors.seam
-                          : colors.line,
+                  flex: 1,
+                  height: 4,
+                  borderRadius: 999,
+                  backgroundColor: i === tip ? colors.lime : colors.line,
                 }}
-              >
-                <Text style={{ color: colors.white, fontSize: 12, fontWeight: '800' }}>{done ? '✓' : i + 1}</Text>
-              </View>
-              <Text style={{ flex: 1, fontWeight: done || active ? '700' : '500', color: done || active ? colors.chalk : colors.muted }}>
-                {s.label}
-              </Text>
-              {active ? <ActivityIndicator color={colors.seam} /> : null}
-            </View>
-          )
-        })}
-      </View>
-        </>
-      )}
+              />
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      <Text style={{ marginTop: 16, textAlign: 'center', fontSize: 13, lineHeight: 20, color: colors.muted }}>
+        You can leave this screen. Analysis keeps running, and this page opens the report when it finishes.
+      </Text>
 
       {error ? (
         <View style={{ marginTop: 20, backgroundColor: colors.roseBg, borderRadius: 14, padding: 14 }}>
-          <Text style={{ color: colors.ball }}>{error}</Text>
+          <Text style={{ fontSize: 10, fontWeight: '800', letterSpacing: 1.6, color: colors.ball }}>
+            WE COULD NOT FINISH THIS ONE
+          </Text>
+          <Text style={{ marginTop: 8, color: colors.chalk }}>{error}</Text>
           <Link href="/" style={{ marginTop: 10, fontWeight: '800', color: colors.lime }}>
             Back to upload
           </Link>

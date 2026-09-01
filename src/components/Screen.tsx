@@ -8,11 +8,14 @@ export function Screen({
   children,
   scroll = true,
   safeTop = true,
+  safeBottom = false,
 }: {
   children: ReactNode
   scroll?: boolean
   /** False when a navigator header already accounts for the status bar. */
   safeTop?: boolean
+  /** True on auth and full-screen stacks so content clears the home indicator. */
+  safeBottom?: boolean
 }) {
   const inner = scroll ? (
     <ScrollView
@@ -28,7 +31,10 @@ export function Screen({
 
   return (
     <LinearGradient colors={[colors.night, colors.charcoal, '#080e10']} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }} edges={safeTop ? ['top'] : []}>
+      <SafeAreaView
+        style={{ flex: 1 }}
+        edges={[...(safeTop ? (['top'] as const) : []), ...(safeBottom ? (['bottom'] as const) : [])]}
+      >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}

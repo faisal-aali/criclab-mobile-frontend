@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "CricLab",
-    "slug": "cric-lab-ai",
+    "slug": "criclab",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,6 +13,7 @@
       "backgroundColor": "#05090a"
     },
     "ios": {
+      "bundleIdentifier": "com.criclab.app",
       "supportsTablet": true,
       "icon": "./assets/icon.png",
       "infoPlist": {
@@ -22,10 +23,12 @@
         "NSAppTransportSecurity": {
           "NSAllowsLocalNetworking": true,
           "NSAllowsArbitraryLoads": true
-        }
+        },
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
+      "package": "com.criclab.app",
       "icon": "./assets/icon.png",
       "adaptiveIcon": {
         "backgroundColor": "#05090a",
@@ -36,9 +39,9 @@
       "predictiveBackGestureEnabled": false,
       "usesCleartextTraffic": true,
       "permissions": [
-        "CAMERA",
-        "RECORD_AUDIO",
-        "READ_MEDIA_VIDEO"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_MEDIA_VIDEO"
       ]
     },
     "web": {
@@ -55,6 +58,15 @@
           "cameraPermission": "CricLab records a bowling session for ball flight tracking.",
           "microphonePermission": "Microphone is used when you record a bowling session.",
           "recordAudioAndroid": true
+        }
+      ],
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "CricLab records bowling video for pose analysis and ball flight tracking.",
+          "enableMicrophonePermission": true,
+          "microphonePermissionText": "Microphone is used when you record a bowling clip.",
+          "enableFrameProcessors": false
         }
       ],
       [
@@ -76,7 +88,12 @@
       ]
     ],
     "extra": {
-      "apiBase": "http://192.168.1.15:8000"
-    }
+      "apiBase": "http://192.168.1.15:8000",
+      "router": {},
+      "eas": {
+        "projectId": "6b2d2fea-4112-41ce-95df-e6f56411ef00"
+      }
+    },
+    "owner": "criclab-ais-team"
   }
 }

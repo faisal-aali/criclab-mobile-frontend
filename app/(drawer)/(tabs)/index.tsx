@@ -3,6 +3,7 @@ import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { Alert, Pressable, Text, TextInput, View } from 'react-native'
 import { uploadVideo, type PickedVideo } from '../../../src/api/client'
+import { consumeActionClip } from '../../../src/camera/pendingActionClip'
 import { FieldLabel, fieldInputStyle } from '../../../src/components/ChoiceRow'
 import { ClipPlayer } from '../../../src/components/ClipPlayer'
 import { AppHeader } from '../../../src/components/AppHeader'
@@ -28,6 +29,8 @@ export default function AnalyzeScreen() {
   useFocusEffect(
     useCallback(() => {
       loadProfile().then(setProfile)
+      const clip = consumeActionClip()
+      if (clip) setVideo(clip)
     }, []),
   )
 
@@ -38,17 +41,13 @@ export default function AnalyzeScreen() {
   const ready = blockers.length === 0
   const displayName = `${profile.firstName.trim()} ${profile.lastName.trim()}`.trim()
 
-  async function pickVideo(fromCamera: boolean) {
-    const perm = fromCamera
-      ? await ImagePicker.requestCameraPermissionsAsync()
-      : await ImagePicker.requestMediaLibraryPermissionsAsync()
+  async function pickVideo() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (!perm.granted) {
-      Alert.alert('Permission needed', fromCamera ? 'Camera access is required.' : 'Photo library access is required.')
+      Alert.alert('Permission needed', 'Photo library access is required.')
       return
     }
-    const result = fromCamera
-      ? await ImagePicker.launchCameraAsync({ mediaTypes: ['videos'], videoMaxDuration: 30, quality: 1 })
-      : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'], quality: 1 })
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'], quality: 1 })
     if (result.canceled || !result.assets[0]) return
     const asset = result.assets[0]
     const name = asset.fileName || asset.uri.split('/').pop() || 'delivery.mp4'
@@ -156,7 +155,7 @@ export default function AnalyzeScreen() {
         <Text style={{ fontWeight: '800', color: colors.chalk }}>Film it this way</Text>
         <Text style={{ marginTop: 6, color: colors.muted, lineHeight: 20 }}>
           Side-on camera · full body in frame from run-up through follow-through · ball visible after it leaves the
-          hand.
+          hand. Record opens a 1080p / 120 fps camera when the phone supports it.
         </Text>
       </View>
 
@@ -174,7 +173,7 @@ export default function AnalyzeScreen() {
 
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
           <Pressable
-            onPress={() => pickVideo(false)}
+            onPress={() => void pickVideo()}
             style={{
               flex: 1,
               backgroundColor: colors.lime,
@@ -186,7 +185,7 @@ export default function AnalyzeScreen() {
             <Text style={{ color: colors.onLime, fontWeight: '700' }}>Library</Text>
           </Pressable>
           <Pressable
-            onPress={() => pickVideo(true)}
+            onPress={() => router.push('/action/record')}
             style={{
               flex: 1,
               backgroundColor: colors.charcoal,

@@ -56,6 +56,7 @@ function AuthGate() {
       <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
       <Stack.Screen name="processing/[jobId]" options={{ title: 'Analyzing', ...analysisHeader }} />
       <Stack.Screen name="results/[deliveryId]" options={{ title: 'Results', ...analysisHeader }} />
+      <Stack.Screen name="action/record" options={{ headerShown: false, title: 'Record' }} />
       <Stack.Screen name="balltrack/record" options={{ headerShown: false, title: 'Record' }} />
       <Stack.Screen name="balltrack/processing/[jobId]" options={{ title: 'Tracking', ...analysisHeader }} />
       <Stack.Screen name="balltrack/session/[sessionId]" options={{ title: 'Session', ...analysisHeader }} />
