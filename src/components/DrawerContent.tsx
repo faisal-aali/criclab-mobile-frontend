@@ -139,8 +139,10 @@ export function DrawerContent(props: DrawerContentComponentProps) {
                 gap: 12,
                 paddingVertical: 12,
                 paddingHorizontal: 12,
-                borderRadius: 14,
-                backgroundColor: active ? 'rgba(182,242,74,0.12)' : 'transparent',
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: active ? colors.limeLine : 'transparent',
+                backgroundColor: active ? colors.limeSoft : 'transparent',
               }}
             >
               <Ionicons name={item.icon} size={22} color={active ? colors.lime : colors.muted} />

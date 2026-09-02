@@ -1,13 +1,14 @@
+import Ionicons from '@expo/vector-icons/Ionicons'
 import * as ImagePicker from 'expo-image-picker'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
-import { Alert, Pressable, Text, TextInput, View } from 'react-native'
+import { Alert, Pressable, Text, TextInput, useWindowDimensions, View } from 'react-native'
 import { uploadVideo, type PickedVideo } from '../../../src/api/client'
 import { consumeActionClip } from '../../../src/camera/pendingActionClip'
 import { FieldLabel, fieldInputStyle } from '../../../src/components/ChoiceRow'
 import { ClipPlayer } from '../../../src/components/ClipPlayer'
 import { AppHeader } from '../../../src/components/AppHeader'
-import { Screen } from '../../../src/components/Screen'
+import { PageHero, Screen, SectionCard } from '../../../src/components/Screen'
 import {
   emptyProfile,
   heightMeters,
@@ -21,6 +22,8 @@ import { colors } from '../../../src/theme'
 
 export default function AnalyzeScreen() {
   const router = useRouter()
+  const { width } = useWindowDimensions()
+  const stackActions = width < 360
   const [profile, setProfile] = useState<SavedProfile>(emptyProfile)
   const [video, setVideo] = useState<PickedVideo | null>(null)
   const [metersPerPixel, setMetersPerPixel] = useState('')
@@ -92,25 +95,20 @@ export default function AnalyzeScreen() {
   return (
     <Screen>
       <AppHeader />
-      <Text style={{ marginTop: 18, fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>
-        ACTION · SIDE-ON
-      </Text>
-      <Text style={{ marginTop: 8, fontSize: 32, fontWeight: '800', color: colors.chalk, lineHeight: 38 }}>
-        Analyze every delivery
-      </Text>
-      <Text style={{ marginTop: 10, fontSize: 15, lineHeight: 22, color: colors.muted }}>
-        Film a side-on clip. Your saved profile scales the delivery into metres and km/h. Ball flight is a different tab —
-        do not mix those numbers with this report.
-      </Text>
+      <PageHero
+        kicker="ACTION · SIDE-ON"
+        title="Analyze every delivery"
+        lead="Film a side-on clip. Your saved profile scales the delivery into metres and km/h. Ball flight is a different tab — do not mix those numbers with this report."
+      />
 
       <Pressable
         onPress={() => router.push('/profile')}
         style={{
           marginTop: 16,
           backgroundColor: colors.card,
-          borderRadius: 16,
+          borderRadius: 20,
           borderWidth: 1,
-          borderColor: colors.line,
+          borderColor: colors.limeLine,
           padding: 14,
           flexDirection: 'row',
           alignItems: 'center',
@@ -139,64 +137,54 @@ export default function AnalyzeScreen() {
               : 'Tap to add height, arm, and bowling style'}
           </Text>
         </View>
-        <Text style={{ color: colors.lime, fontWeight: '800' }}>Edit</Text>
+        <Ionicons name="chevron-forward" size={18} color={colors.lime} />
       </Pressable>
 
-      <View
-        style={{
-          marginTop: 16,
-          backgroundColor: colors.card,
-          borderRadius: 16,
-          borderWidth: 1,
-          borderColor: colors.line,
-          padding: 14,
-        }}
-      >
+      <SectionCard>
         <Text style={{ fontWeight: '800', color: colors.chalk }}>Film it this way</Text>
         <Text style={{ marginTop: 6, color: colors.muted, lineHeight: 20 }}>
           Side-on camera · full body in frame from run-up through follow-through · ball visible after it leaves the
           hand. Record opens a 1080p / 120 fps camera when the phone supports it.
         </Text>
-      </View>
+      </SectionCard>
 
-      <View
-        style={{
-          marginTop: 18,
-          backgroundColor: colors.card,
-          borderRadius: 24,
-          borderWidth: 1,
-          borderColor: colors.line,
-          padding: 16,
-        }}
-      >
+      <SectionCard accent>
         <Text style={{ fontSize: 20, fontWeight: '800', color: colors.chalk }}>Bowling video</Text>
 
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+        <View style={{ flexDirection: stackActions ? 'column' : 'row', gap: 10, marginTop: 12 }}>
           <Pressable
             onPress={() => void pickVideo()}
             style={{
-              flex: 1,
+              flex: stackActions ? undefined : 1,
               backgroundColor: colors.lime,
-              borderRadius: 12,
-              paddingVertical: 12,
+              borderRadius: 14,
+              paddingVertical: 13,
               alignItems: 'center',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              gap: 8,
             }}
           >
-            <Text style={{ color: colors.onLime, fontWeight: '700' }}>Library</Text>
+            <Ionicons name="images" size={18} color={colors.onLime} />
+            <Text style={{ color: colors.onLime, fontWeight: '800' }}>Library</Text>
           </Pressable>
           <Pressable
             onPress={() => router.push('/action/record')}
             style={{
-              flex: 1,
+              flex: stackActions ? undefined : 1,
               backgroundColor: colors.charcoal,
-              borderRadius: 12,
+              borderRadius: 14,
               borderWidth: 1,
               borderColor: colors.lime,
-              paddingVertical: 12,
+              paddingVertical: 13,
               alignItems: 'center',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              gap: 8,
             }}
           >
-            <Text style={{ color: colors.lime, fontWeight: '700' }}>Record</Text>
+            <Ionicons name="videocam" size={18} color={colors.lime} />
+            <Text style={{ color: colors.lime, fontWeight: '800' }}>Record</Text>
           </Pressable>
         </View>
         {video ? <Text style={{ marginTop: 8, fontSize: 12, color: colors.muted }}>{video.name}</Text> : null}
@@ -236,7 +224,7 @@ export default function AnalyzeScreen() {
             {busy ? 'Uploading…' : ready ? 'Analyze delivery' : 'Complete details to continue'}
           </Text>
         </Pressable>
-      </View>
+      </SectionCard>
     </Screen>
   )
 }

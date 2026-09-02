@@ -12,9 +12,20 @@ export function LogoMark({ size = 36 }: { size?: number }) {
 
 export function Logo({ size = 34 }: { size?: number }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minWidth: 0 }}>
       <LogoMark size={size} />
-      <Text style={{ fontSize: 22, fontWeight: '800', letterSpacing: -0.4, color: colors.chalk }}>CricLab</Text>
+      <Text
+        numberOfLines={1}
+        style={{
+          flexShrink: 1,
+          fontSize: size >= 34 ? 22 : 18,
+          fontWeight: '800',
+          letterSpacing: -0.4,
+          color: colors.chalk,
+        }}
+      >
+        CricLab
+      </Text>
     </View>
   )
 }

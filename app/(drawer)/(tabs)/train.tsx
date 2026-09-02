@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Image, Pressable, Text, View } from 'react-native'
 import { listDrills, type DrillCatalogItem } from '../../../src/api/client'
 import { AppHeader } from '../../../src/components/AppHeader'
-import { Screen } from '../../../src/components/Screen'
+import { PageHero, Screen } from '../../../src/components/Screen'
 import { EmptyState, ListShimmer } from '../../../src/shimmer'
 import { colors } from '../../../src/theme'
 
@@ -36,13 +36,11 @@ export default function TrainScreen() {
   return (
     <Screen>
       <AppHeader />
-      <Text style={{ marginTop: 18, fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>
-        COACHING
-      </Text>
-      <Text style={{ marginTop: 8, fontSize: 32, fontWeight: '800', color: colors.chalk }}>Train</Text>
-      <Text style={{ marginTop: 8, color: colors.muted, lineHeight: 22 }}>
-        Drill library from the lab. Open a clip on YouTube — CricLab does not invent a plan from thin air.
-      </Text>
+      <PageHero
+        kicker="COACHING"
+        title="Train"
+        lead="Drill library from the lab. Open a clip on YouTube — CricLab does not invent a plan from thin air."
+      />
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 16 }}>
         {['all', ...tags].map((t) => {

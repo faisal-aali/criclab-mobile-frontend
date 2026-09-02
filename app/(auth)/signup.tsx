@@ -61,11 +61,27 @@ export default function SignUpScreen() {
         secure
         autoComplete="password"
       />
-      <View style={{ marginTop: 12, gap: 6 }}>
+      <View style={{ marginTop: 14, gap: 8 }}>
         {checks.map((c) => (
-          <Text key={c.label} style={{ fontSize: 12, color: c.ok ? colors.emerald : colors.muted }}>
-            {c.ok ? '✓' : '○'} {c.label}
-          </Text>
+          <View key={c.label} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View
+              style={{
+                width: 16,
+                height: 16,
+                borderRadius: 8,
+                backgroundColor: c.ok ? colors.emeraldBg : colors.charcoal,
+                borderWidth: 1,
+                borderColor: c.ok ? colors.emerald : colors.line,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 10, fontWeight: '800', color: c.ok ? colors.emerald : colors.muted }}>
+                {c.ok ? '✓' : ''}
+              </Text>
+            </View>
+            <Text style={{ flex: 1, fontSize: 12, color: c.ok ? colors.emerald : colors.muted }}>{c.label}</Text>
+          </View>
         ))}
       </View>
       <PrimaryButton

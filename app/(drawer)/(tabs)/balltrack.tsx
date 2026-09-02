@@ -4,7 +4,7 @@ import { Pressable, Text, View } from 'react-native'
 import { listBalltrackSessions } from '../../../src/balltrack/api'
 import type { BallTrackSession } from '../../../src/balltrack/types'
 import { AppHeader } from '../../../src/components/AppHeader'
-import { Screen } from '../../../src/components/Screen'
+import { PageHero, Screen, SectionCard } from '../../../src/components/Screen'
 import { EmptyState, ListShimmer } from '../../../src/shimmer'
 import { colors } from '../../../src/theme'
 
@@ -40,41 +40,26 @@ export default function BallTrackHub() {
   return (
     <Screen>
       <AppHeader />
-      <Text style={{ marginTop: 18, fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>
-        BALL FLIGHT
-      </Text>
-      <Text style={{ marginTop: 8, fontSize: 32, fontWeight: '800', color: colors.chalk, lineHeight: 38 }}>
-        Track every ball
-      </Text>
-      <Text style={{ marginTop: 10, fontSize: 15, lineHeight: 22, color: colors.muted }}>
-        Down-the-pitch camera. Align both stump sets, film a session, then review speed, line, length, and a pitch map.
-        If there is no ball in flight, you will get “no ball found” — never a fake speed. These numbers stay off Action
-        reports.
-      </Text>
+      <PageHero
+        kicker="BALL FLIGHT"
+        title="Track every ball"
+        lead="Down-the-pitch camera. Align both stump sets, film a session, then review speed, line, length, and a pitch map. If there is no ball in flight, you will get “no ball found” — never a fake speed. These numbers stay off Action reports."
+      />
 
-      <View
-        style={{
-          marginTop: 16,
-          backgroundColor: colors.card,
-          borderRadius: 16,
-          borderWidth: 1,
-          borderColor: colors.line,
-          padding: 14,
-        }}
-      >
+      <SectionCard>
         <Text style={{ fontWeight: '800', color: colors.chalk }}>Setup</Text>
         <Text style={{ marginTop: 6, color: colors.muted, lineHeight: 20 }}>
           20.12 m pitch · two sets of three stumps · tripod ~1.5 m high · 4 m behind the bowler · fit both wickets in the
           boxes, then Continue so the lab can find them and draw the pitch line.
         </Text>
-      </View>
+      </SectionCard>
 
       <Pressable
         onPress={() => router.push('/balltrack/record')}
         style={{
           marginTop: 18,
           backgroundColor: colors.lime,
-          borderRadius: 14,
+          borderRadius: 16,
           paddingVertical: 16,
           alignItems: 'center',
         }}

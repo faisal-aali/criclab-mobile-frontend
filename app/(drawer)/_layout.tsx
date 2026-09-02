@@ -1,4 +1,5 @@
 import { Drawer } from 'expo-router/drawer'
+import { useWindowDimensions } from 'react-native'
 import { DrawerContent } from '../../src/components/DrawerContent'
 import { colors } from '../../src/theme'
 
@@ -7,6 +8,8 @@ export const unstable_settings = {
 }
 
 export default function DrawerLayout() {
+  const { width } = useWindowDimensions()
+  const drawerWidth = Math.min(320, Math.round(width * 0.86))
   return (
     <Drawer
       drawerContent={(props) => <DrawerContent {...props} />}
@@ -17,7 +20,7 @@ export default function DrawerLayout() {
         headerStyle: { backgroundColor: colors.night },
         headerTitleAlign: 'center',
         drawerType: 'front',
-        drawerStyle: { backgroundColor: colors.charcoal, width: 300 },
+        drawerStyle: { backgroundColor: colors.charcoal, width: drawerWidth },
         drawerHideStatusBarOnOpen: false,
         overlayColor: 'rgba(0,0,0,0.55)',
         sceneStyle: { backgroundColor: colors.night },

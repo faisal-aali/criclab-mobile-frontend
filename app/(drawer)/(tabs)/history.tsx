@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { listDeliveries, metricReady, type Delivery } from '../../../src/api/client'
 import { AppHeader } from '../../../src/components/AppHeader'
-import { Screen } from '../../../src/components/Screen'
+import { PageHero, Screen } from '../../../src/components/Screen'
 import { EmptyState, ListShimmer } from '../../../src/shimmer'
 import { colors } from '../../../src/theme'
 
@@ -39,10 +39,10 @@ export default function HistoryScreen() {
   return (
     <Screen>
       <AppHeader />
-      <Text style={{ marginTop: 18, fontSize: 32, fontWeight: '800', color: colors.chalk }}>History</Text>
-      <Text style={{ marginTop: 6, color: colors.muted }}>
-        Your Action deliveries. Ball flight sessions live on the Flight tab — the two must not mix numbers.
-      </Text>
+      <PageHero
+        title="History"
+        lead="Your Action deliveries. Ball flight sessions live on the Flight tab — the two must not mix numbers."
+      />
       {error ? <Text style={{ marginTop: 12, color: colors.ball }}>{error}</Text> : null}
 
       {loading ? <ListShimmer /> : null}

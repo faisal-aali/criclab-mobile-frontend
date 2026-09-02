@@ -6,7 +6,7 @@ import { defaultBase, getApiBase, setApiBase, suggestedLanHint } from '../../../
 import { useAuth } from '../../../src/auth/AuthProvider'
 import { AppHeader } from '../../../src/components/AppHeader'
 import { ChoiceRow, FieldLabel, fieldInputStyle } from '../../../src/components/ChoiceRow'
-import { Screen } from '../../../src/components/Screen'
+import { PageHero, Screen, SectionCard } from '../../../src/components/Screen'
 import {
   emptyProfile,
   heightMeters,
@@ -78,24 +78,13 @@ export default function ProfileScreen() {
   return (
     <Screen>
       <AppHeader />
-      <Text style={{ marginTop: 18, fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>
-        ACCOUNT
-      </Text>
-      <Text style={{ marginTop: 8, fontSize: 32, fontWeight: '800', color: colors.chalk }}>More</Text>
-      <Text style={{ marginTop: 8, lineHeight: 22, color: colors.muted }}>
-        Height and bowling arm scale pixels to metres and tell the lab which wrist to track.
-      </Text>
+      <PageHero
+        kicker="ACCOUNT"
+        title="More"
+        lead="Height and bowling arm scale pixels to metres and tell the lab which wrist to track."
+      />
 
-      <View
-        style={{
-          marginTop: 18,
-          backgroundColor: colors.card,
-          borderRadius: 16,
-          borderWidth: 1,
-          borderColor: colors.line,
-          padding: 16,
-        }}
-      >
+      <SectionCard accent>
         <Text style={{ fontWeight: '800', color: colors.chalk }}>{user?.name || 'Signed in'}</Text>
         <Text style={{ marginTop: 4, color: colors.muted }}>{user?.email}</Text>
         <Pressable
@@ -135,18 +124,9 @@ export default function ProfileScreen() {
         >
           <Text style={{ color: colors.ball, fontWeight: '800' }}>Sign out</Text>
         </Pressable>
-      </View>
+      </SectionCard>
 
-      <View
-        style={{
-          marginTop: 18,
-          backgroundColor: colors.card,
-          borderRadius: 16,
-          borderWidth: 1,
-          borderColor: colors.line,
-          padding: 16,
-        }}
-      >
+      <SectionCard>
         <Text style={{ fontWeight: '800', color: colors.chalk }}>Lab URL</Text>
         <Text style={{ marginTop: 6, fontSize: 12, color: colors.muted, lineHeight: 18 }}>{suggestedLanHint()}</Text>
         <FieldLabel>API base</FieldLabel>
@@ -160,11 +140,12 @@ export default function ProfileScreen() {
           placeholder="http://192.168.1.15:8000"
           placeholderTextColor={colors.muted}
         />
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 }}>
           <Pressable
             onPress={() => void onSaveLabUrl()}
             style={{
               flex: 1,
+              minWidth: 120,
               backgroundColor: colors.lime,
               borderRadius: 12,
               paddingVertical: 12,
@@ -178,6 +159,7 @@ export default function ProfileScreen() {
             disabled={pinging}
             style={{
               flex: 1,
+              minWidth: 120,
               borderWidth: 1,
               borderColor: colors.line,
               backgroundColor: colors.charcoal,
@@ -195,7 +177,7 @@ export default function ProfileScreen() {
             {health}
           </Text>
         ) : null}
-      </View>
+      </SectionCard>
 
       <View
         style={{
@@ -232,8 +214,8 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <View style={{ flex: 1 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+          <View style={{ flex: 1, minWidth: 140 }}>
             <FieldLabel>First name</FieldLabel>
             <TextInput
               style={fieldInputStyle}
@@ -242,7 +224,7 @@ export default function ProfileScreen() {
               autoCapitalize="words"
             />
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, minWidth: 140 }}>
             <FieldLabel>Last name</FieldLabel>
             <TextInput
               style={fieldInputStyle}
@@ -263,8 +245,8 @@ export default function ProfileScreen() {
           autoCapitalize="none"
         />
 
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <View style={{ flex: 1 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+          <View style={{ flex: 1, minWidth: 90 }}>
             <FieldLabel>Height (ft)</FieldLabel>
             <TextInput
               style={fieldInputStyle}
@@ -275,7 +257,7 @@ export default function ProfileScreen() {
               placeholderTextColor={colors.muted}
             />
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, minWidth: 90 }}>
             <FieldLabel>Height (in)</FieldLabel>
             <TextInput
               style={fieldInputStyle}
@@ -286,7 +268,7 @@ export default function ProfileScreen() {
               placeholderTextColor={colors.muted}
             />
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, minWidth: 90 }}>
             <FieldLabel>Weight (lbs)</FieldLabel>
             <TextInput
               style={fieldInputStyle}

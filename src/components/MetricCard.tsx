@@ -25,9 +25,11 @@ export function MetricCard({ label, metric }: { label: string; metric?: MetricVa
     <View
       style={{
         flex: 1,
-        minWidth: '46%',
+        minWidth: 148,
+        flexBasis: 148,
+        maxWidth: '100%',
         backgroundColor: colors.card,
-        borderRadius: 16,
+        borderRadius: 18,
         borderWidth: 1,
         borderColor: colors.line,
         padding: 14,

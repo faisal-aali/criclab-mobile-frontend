@@ -48,9 +48,9 @@ export const fieldInputStyle = {
   borderWidth: 1,
   borderColor: colors.line,
   backgroundColor: colors.charcoal,
-  borderRadius: 12,
-  paddingHorizontal: 12,
-  paddingVertical: 12,
+  borderRadius: 14,
+  paddingHorizontal: 14,
+  paddingVertical: 13,
   fontSize: 16,
   color: colors.chalk,
 } as const

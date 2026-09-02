@@ -8,8 +8,10 @@ import { Logo } from './Logo'
 export function AppHeader() {
   const navigation = useNavigation()
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-      <Logo />
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, minWidth: 0 }}>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Logo />
+      </View>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Open menu"
