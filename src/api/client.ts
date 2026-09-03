@@ -13,14 +13,18 @@ export type StageDetail = {
 
 export type Job = {
   id: string
-  video_id: string
-  status: 'queued' | 'claimed' | 'processing' | 'analyzing' | 'completed' | 'failed' | string
+  kind?: 'action' | 'ballflight'
+  video_id?: string
+  session_id?: string
+  status: 'queued' | 'claimed' | 'processing' | 'analyzing' | 'completed' | 'failed' | 'cancelled' | string
   progress: number
   stage?: string
   message?: string
   delivery_id?: string
   error?: string
   eta_seconds?: number | null
+  expected_start_at?: string | null
+  scheduled_date?: string | null
   stage_detail?: StageDetail | null
 }
 
@@ -149,9 +153,116 @@ export type Delivery = {
 
 export async function assetUrl(path?: string | null) {
   if (!path) return ''
-  if (path.startsWith('http')) return path
+  if (path.startsWith('http')) return cloudinaryPlaybackUrl(path)
   const base = await getApiBase()
   return `${base}${path}`
+}
+
+/** H.264 MP4 of an incoming Cloudinary clip so phones can play HEVC .mov. */
+export function cloudinaryPlaybackUrl(url: string): string {
+  if (!url.startsWith('http')) return url
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    return url
+  }
+  const host = parsed.hostname.toLowerCase()
+  if (host !== 'res.cloudinary.com' && !host.endsWith('.cloudinary.com')) return url
+  const marker = '/video/upload/'
+  const idx = parsed.pathname.indexOf(marker)
+  if (idx < 0) return url
+  const rest = parsed.pathname.slice(idx + marker.length)
+  const first = rest.split('/')[0] || ''
+  if (first.includes('f_mp4') || first.includes('vc_h264')) return url
+  let path = `${parsed.pathname.slice(0, idx + marker.length)}f_mp4,vc_h264/${rest}`
+  if (path.toLowerCase().endsWith('.mov')) path = `${path.slice(0, -4)}.mp4`
+  parsed.pathname = path
+  return parsed.toString()
+}
+
+export type PickedVideo = {
+  uri: string
+  name: string
+  mimeType?: string | null
+}
+
+type CloudinaryUploadParams = {
+  configured: boolean
+  cloud_name?: string
+  api_key?: string
+  timestamp?: number
+  signature?: string
+  folder?: string
+  eager?: string
+  eager_async?: string
+}
+
+function rnFilePart(video: PickedVideo) {
+  const name = video.name || 'delivery.mp4'
+  return {
+    uri: video.uri,
+    name,
+    type: video.mimeType || mimeFromName(name),
+  } as unknown as Blob
+}
+
+async function postForm(url: string, body: FormData): Promise<string> {
+  if (typeof XMLHttpRequest !== 'undefined') {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', url)
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(xhr.responseText)
+          return
+        }
+        reject(new Error('Could not upload the video. Try a shorter clip.'))
+      }
+      xhr.onerror = () => reject(new Error('Could not upload the video. Try a shorter clip.'))
+      xhr.send(body)
+    })
+  }
+  const res = await fetch(url, { method: 'POST', body })
+  if (!res.ok) throw new Error('Could not upload the video. Try a shorter clip.')
+  return res.text()
+}
+
+/**
+ * Send the clip to Cloudinary (same as the web workspace). The website API
+ * then queues a job; criclab-video-service claims it. Null = local lab
+ * without Cloudinary — fall back to multipart through FastAPI.
+ */
+export async function cloudinaryClipUrl(video: PickedVideo): Promise<string | null> {
+  let params: CloudinaryUploadParams
+  try {
+    params = await request<CloudinaryUploadParams>('/videos/upload-params')
+  } catch {
+    return null
+  }
+  if (
+    !params.configured ||
+    !params.cloud_name ||
+    !params.api_key ||
+    !params.signature ||
+    params.timestamp == null
+  ) {
+    return null
+  }
+  const body = new FormData()
+  body.append('file', rnFilePart(video))
+  body.append('api_key', params.api_key)
+  body.append('timestamp', String(params.timestamp))
+  body.append('signature', params.signature)
+  body.append('folder', params.folder || 'criclab/incoming')
+  if (params.eager) body.append('eager', params.eager)
+  if (params.eager_async) body.append('eager_async', params.eager_async)
+  const raw = await postForm(`https://api.cloudinary.com/v1_1/${params.cloud_name}/video/upload`, body)
+  const json = JSON.parse(raw) as { secure_url?: string }
+  if (!json.secure_url) {
+    throw new Error('Could not upload the video. Try a shorter clip.')
+  }
+  return json.secure_url
 }
 
 function mimeFromName(name: string) {
@@ -161,12 +272,6 @@ function mimeFromName(name: string) {
   if (n.endsWith('.avi')) return 'video/x-msvideo'
   if (n.endsWith('.mkv')) return 'video/x-matroska'
   return 'video/mp4'
-}
-
-export type PickedVideo = {
-  uri: string
-  name: string
-  mimeType?: string | null
 }
 
 export async function uploadVideo(input: {
@@ -184,11 +289,13 @@ export async function uploadVideo(input: {
 }) {
   const form = new FormData()
   const name = input.video.name || 'delivery.mp4'
-  form.append('file', {
-    uri: input.video.uri,
-    name,
-    type: input.video.mimeType || mimeFromName(name),
-  } as unknown as Blob)
+  const remote = await cloudinaryClipUrl(input.video)
+  if (remote) {
+    form.append('source_url', remote)
+    form.append('original_name', name)
+  } else {
+    form.append('file', rnFilePart(input.video))
+  }
   form.append('player_name', input.playerName)
   form.append('first_name', input.firstName)
   form.append('last_name', input.lastName)
@@ -210,6 +317,14 @@ export async function uploadVideo(input: {
 
 export function getJob(jobId: string) {
   return request<Job>(`/jobs/${jobId}`)
+}
+
+export function cancelJob(jobId: string) {
+  return request<{ id: string; status: string }>(`/jobs/${jobId}/cancel`, { method: 'POST' })
+}
+
+export function listActiveJobs() {
+  return request<{ items: Job[] }>('/jobs/active')
 }
 
 export function listDeliveries() {

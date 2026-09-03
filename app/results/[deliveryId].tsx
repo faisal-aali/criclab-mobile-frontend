@@ -159,7 +159,7 @@ export default function ResultsScreen() {
         const pdf = artifacts.pdf_url
           ? `${await assetUrl(artifacts.pdf_url)}?download=1`
           : artifacts.cloudinary_pdf_url || ''
-        setProcessedSrc(cloud || overlay)
+        setProcessedSrc(cloud ? await assetUrl(cloud) : overlay)
         setOriginalSrc(original)
         setPdfHref(pdf)
       })

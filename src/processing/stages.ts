@@ -67,6 +67,25 @@ export function formatEta(seconds: number | null | undefined): string | null {
   return `~${minutes} minutes`
 }
 
+export function formatExpectedAt(iso: string | null | undefined): string | null {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  const time = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+  const today = new Date()
+  if (d.toDateString() === today.toDateString()) return `today, ${time}`
+  const date = d.toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  })
+  return `${date}, ${time}`
+}
+
+export function isWaitingToStart(status: string | undefined): boolean {
+  return status === 'queued' || status === 'claimed'
+}
+
 function formatBytes(n: number) {
   if (n < 1024) return `${n} B`
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`

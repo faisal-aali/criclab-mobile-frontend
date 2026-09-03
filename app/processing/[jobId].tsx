@@ -1,23 +1,26 @@
 import { Link, useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Text, View } from 'react-native'
-import { getJob, type Job } from '../../src/api/client'
+import { Pressable, Text, View } from 'react-native'
+import { cancelJob, getJob, type Job } from '../../src/api/client'
 import { ProcessingStages } from '../../src/components/ProcessingStages'
 import { Screen } from '../../src/components/Screen'
 import { useFallbackBack } from '../../src/nav/back'
-import { ACTION_STAGES, ACTION_TIPS } from '../../src/processing/stages'
+import { useProcessingJobs } from '../../src/processing/ProcessingJobs'
+import { ACTION_STAGES, ACTION_TIPS, isWaitingToStart } from '../../src/processing/stages'
 import { ProcessingShimmer } from '../../src/shimmer'
 import { colors } from '../../src/theme'
 
-const POLL_MS = 500
+const POLL_MS = 1500
 
 export default function ProcessingScreen() {
   const { jobId } = useLocalSearchParams<{ jobId: string }>()
   const router = useRouter()
+  const { untrackJob } = useProcessingJobs()
   useFallbackBack()
   const [job, setJob] = useState<Job | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [tip, setTip] = useState(0)
+  const [cancelling, setCancelling] = useState(false)
 
   useEffect(() => {
     if (!jobId) return
@@ -29,6 +32,11 @@ export default function ProcessingScreen() {
         setJob(data)
         if (data.status === 'completed' && data.delivery_id) {
           router.replace(`/results/${data.delivery_id}`)
+          return
+        }
+        if (data.status === 'cancelled') {
+          untrackJob(data.id)
+          router.replace('/')
           return
         }
         if (data.status === 'failed') {
@@ -45,7 +53,7 @@ export default function ProcessingScreen() {
       alive = false
       clearInterval(timer)
     }
-  }, [jobId, router])
+  }, [jobId, router, untrackJob])
 
   useEffect(() => {
     const rotate = setInterval(() => setTip((t) => (t + 1) % ACTION_TIPS.length), 6500)
@@ -53,15 +61,29 @@ export default function ProcessingScreen() {
   }, [])
 
   const failed = job?.status === 'failed'
+  const waiting = !failed && isWaitingToStart(job?.status)
   const current = ACTION_TIPS[tip]
+
+  async function onCancel() {
+    if (!jobId || cancelling) return
+    setCancelling(true)
+    try {
+      await cancelJob(jobId)
+      untrackJob(jobId)
+      router.replace('/')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not remove this clip from the queue')
+      setCancelling(false)
+    }
+  }
 
   return (
     <Screen safeTop={false} safeBottom>
       <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '800', letterSpacing: 2, color: colors.lime }}>
-        WORKING ON IT
+        {waiting ? 'IN THE QUEUE' : 'WORKING ON IT'}
       </Text>
       <Text style={{ marginTop: 8, textAlign: 'center', fontSize: 28, fontWeight: '800', color: colors.chalk }}>
-        Reading the delivery
+        {waiting ? 'Waiting to start' : 'Reading the delivery'}
       </Text>
       <View
         style={{
@@ -74,7 +96,7 @@ export default function ProcessingScreen() {
         }}
       >
         <Text style={{ fontSize: 12, fontWeight: '800', color: failed ? colors.ball : colors.lime }}>
-          {failed ? 'Stopped' : `In progress — ${Math.round(job?.progress ?? 0)}%`}
+          {failed ? 'Stopped' : waiting ? 'Queued' : `In progress — ${Math.round(job?.progress ?? 0)}%`}
         </Text>
       </View>
 
@@ -89,6 +111,7 @@ export default function ProcessingScreen() {
           status={job?.status}
           message={job?.message}
           etaSeconds={job?.eta_seconds}
+          expectedStartAt={job?.expected_start_at}
           stageDetail={job?.stage_detail}
           failed={failed}
         />
@@ -124,8 +147,34 @@ export default function ProcessingScreen() {
       ) : null}
 
       <Text style={{ marginTop: 16, textAlign: 'center', fontSize: 13, lineHeight: 20, color: colors.muted }}>
-        You can leave this screen. Analysis keeps running, and this page opens the report when it finishes.
+        Analysis runs on the lab, not this phone. Leave this screen — the header ring keeps the progress.
       </Text>
+
+      <Pressable
+        onPress={() => router.replace('/')}
+        style={{
+          marginTop: 16,
+          borderRadius: 14,
+          borderWidth: 1,
+          borderColor: colors.lime,
+          paddingVertical: 14,
+          alignItems: 'center',
+        }}
+      >
+        <Text style={{ color: colors.lime, fontWeight: '800' }}>Keep using CricLab</Text>
+      </Pressable>
+
+      {waiting ? (
+        <Pressable
+          onPress={() => void onCancel()}
+          disabled={cancelling}
+          style={{ marginTop: 10, paddingVertical: 12, alignItems: 'center' }}
+        >
+          <Text style={{ color: colors.muted, fontWeight: '700' }}>
+            {cancelling ? 'Removing…' : 'Remove from queue'}
+          </Text>
+        </Pressable>
+      ) : null}
 
       {error ? (
         <View style={{ marginTop: 20, backgroundColor: colors.roseBg, borderRadius: 14, padding: 14 }}>

@@ -9,12 +9,14 @@ import { detectStumps, uploadSession } from '../../src/balltrack/api'
 import { DraggableStumpBox, PitchOverlay } from '../../src/balltrack/pitchGuide'
 import { BATTER_BOX, BOWLER_BOX, type Box } from '../../src/balltrack/types'
 import { SlowMoCamera, hasHighSpeedCameraNative, type SlowMoCameraHandle } from '../../src/camera/SlowMoCamera'
+import { useProcessingJobs } from '../../src/processing/ProcessingJobs'
 import { colors } from '../../src/theme'
 
 type Phase = 'align' | 'armed'
 
 export default function BallTrackRecord() {
   const router = useRouter()
+  const { trackJob } = useProcessingJobs()
   const insets = useSafeAreaInsets()
   const cameraRef = useRef<SlowMoCameraHandle>(null)
   const isFocused = useIsFocused()
@@ -85,7 +87,15 @@ export default function BallTrackRecord() {
         mimeType: 'video/mp4',
         calibration: { bowler, batter, pitch_length_m: 20.12 },
       })
-      router.replace(`/balltrack/processing/${res.job_id}`)
+      trackJob({ id: res.job_id, kind: 'ballflight' })
+      Alert.alert(
+        'Queued for the lab',
+        'Ball flight runs in the background. Watch the lime ring in the header.',
+        [
+          { text: 'Watch progress', onPress: () => router.replace(`/balltrack/processing/${res.job_id}`) },
+          { text: 'OK', onPress: () => router.replace('/(tabs)/balltrack') },
+        ],
+      )
     } catch (err) {
       Alert.alert('Upload failed', err instanceof Error ? err.message : 'Could not start tracking')
     } finally {

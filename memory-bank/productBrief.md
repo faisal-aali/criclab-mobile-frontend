@@ -42,8 +42,10 @@ flight km/h on an Action report, or Action joint angles on a Ball flight ball.
    players’ reports stay private (`result_id` only when `mine`)
 9. **Account / lab URL** — profile, API base (simulator vs LAN), health ping
 
-The phone **uploads a file** and **renders JSON + media URLs**. Pose, ball
-track, overlay, Gemma, and PDF still run on FastAPI.
+The phone **uploads a clip** (Cloudinary when configured) and **renders JSON +
+media URLs**. Pose, ball track, overlay, Gemma, and PDF run in
+`criclab-video-service`. The website API only queues and serves. Leaving a
+screen does not stop a job.
 
 ## Inherited lab features (server — already built)
 

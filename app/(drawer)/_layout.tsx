@@ -1,6 +1,7 @@
 import { Drawer } from 'expo-router/drawer'
-import { useWindowDimensions } from 'react-native'
+import { View, useWindowDimensions } from 'react-native'
 import { DrawerContent } from '../../src/components/DrawerContent'
+import { ProcessingIndicator } from '../../src/components/ProcessingIndicator'
 import { colors } from '../../src/theme'
 
 export const unstable_settings = {
@@ -19,6 +20,11 @@ export default function DrawerLayout() {
         headerShadowVisible: false,
         headerStyle: { backgroundColor: colors.night },
         headerTitleAlign: 'center',
+        headerRight: () => (
+          <View style={{ marginRight: 10 }}>
+            <ProcessingIndicator />
+          </View>
+        ),
         drawerType: 'front',
         drawerStyle: { backgroundColor: colors.charcoal, width: drawerWidth },
         drawerHideStatusBarOnOpen: false,

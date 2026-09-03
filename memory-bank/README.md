@@ -47,11 +47,13 @@ the agent behaves like a teammate who already knows CricLab.
 | Repo | Path | Job |
 |------|------|-----|
 | **CricLab mobile** (this) | `~/Desktop/cric-lab-ai` | Phone UI |
-| **CricLab backend** | `~/Desktop/Cric-Lab/criclab-web-backend` | FastAPI + pose + PDF + auth |
+| **CricLab backend** | `~/Desktop/Cric-Lab/criclab-web-backend` | FastAPI: auth, queue, reads |
+| **CricLab workers** | `~/Desktop/Cric-Lab/criclab-video-service` | Pose, overlay, PDF, Gemma notes |
 | **CricLab web** | `~/Desktop/Cric-Lab/criclab-web-frontend` | Vite web app (same API) |
 
 The old sibling `CricLabMLReview` is retired. Point every API call at
-`criclab-web-backend`. Python **3.12** only for that lab.
+`criclab-web-backend`. Pose / overlay / PDF run in `criclab-video-service`.
+Python **3.12** only for those labs.
 
 Brand: **CricLab** (not “Cric-Lab AI”, not SpinLab, not Fulltrack).
 Domain: cricket **bowling** only for v1.

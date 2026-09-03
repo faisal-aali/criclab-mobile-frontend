@@ -1,21 +1,24 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
-import { getBalltrackJob } from '../../../src/balltrack/api'
+import { cancelBalltrackJob, getBalltrackJob } from '../../../src/balltrack/api'
 import type { BallTrackJob } from '../../../src/balltrack/types'
 import { ProcessingStages } from '../../../src/components/ProcessingStages'
 import { Screen } from '../../../src/components/Screen'
-import { BALL_FLIGHT_STAGES } from '../../../src/processing/stages'
+import { useProcessingJobs } from '../../../src/processing/ProcessingJobs'
+import { BALL_FLIGHT_STAGES, isWaitingToStart } from '../../../src/processing/stages'
 import { ProcessingShimmer } from '../../../src/shimmer'
 import { colors } from '../../../src/theme'
 
-const POLL_MS = 500
+const POLL_MS = 1500
 
 export default function BallTrackProcessing() {
   const { jobId } = useLocalSearchParams<{ jobId: string }>()
   const router = useRouter()
+  const { untrackJob } = useProcessingJobs()
   const [job, setJob] = useState<BallTrackJob | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [cancelling, setCancelling] = useState(false)
 
   useEffect(() => {
     if (!jobId) return
@@ -27,6 +30,11 @@ export default function BallTrackProcessing() {
         setJob(data)
         if (data.status === 'completed' && data.session_id) {
           router.replace(`/balltrack/session/${data.session_id}`)
+          return
+        }
+        if (data.status === 'cancelled') {
+          untrackJob(data.id)
+          router.replace('/(tabs)/balltrack')
           return
         }
         if (data.status === 'failed') {
@@ -43,10 +51,24 @@ export default function BallTrackProcessing() {
       alive = false
       clearInterval(timer)
     }
-  }, [jobId, router])
+  }, [jobId, router, untrackJob])
 
   const failed = Boolean(error) || job?.status === 'failed'
+  const waiting = !failed && isWaitingToStart(job?.status)
   const noBall = (error || '').toLowerCase().includes('ball')
+
+  async function onCancel() {
+    if (!jobId || cancelling) return
+    setCancelling(true)
+    try {
+      await cancelBalltrackJob(jobId)
+      untrackJob(jobId)
+      router.replace('/(tabs)/balltrack')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not remove this session from the queue')
+      setCancelling(false)
+    }
+  }
 
   return (
     <Screen safeTop={false} safeBottom>
@@ -54,7 +76,13 @@ export default function BallTrackProcessing() {
         BALL FLIGHT
       </Text>
       <Text style={{ marginTop: 8, textAlign: 'center', fontSize: 28, fontWeight: '800', color: colors.chalk }}>
-        {failed ? (noBall ? 'No ball found' : 'We could not finish this one') : 'Tracking the ball'}
+        {failed
+          ? noBall
+            ? 'No ball found'
+            : 'We could not finish this one'
+          : waiting
+            ? 'Waiting to start'
+            : 'Tracking the ball'}
       </Text>
       <View
         style={{
@@ -67,7 +95,7 @@ export default function BallTrackProcessing() {
         }}
       >
         <Text style={{ fontSize: 12, fontWeight: '800', color: failed ? colors.ball : colors.lime }}>
-          {failed ? 'Stopped' : `Ball flight — ${Math.round(job?.progress ?? 0)}%`}
+          {failed ? 'Stopped' : waiting ? 'Queued' : `Ball flight — ${Math.round(job?.progress ?? 0)}%`}
         </Text>
       </View>
 
@@ -82,6 +110,7 @@ export default function BallTrackProcessing() {
           status={job?.status}
           message={error || job?.message}
           etaSeconds={job?.eta_seconds}
+          expectedStartAt={job?.expected_start_at}
           stageDetail={job?.stage_detail}
           failed={failed}
         />
@@ -93,9 +122,37 @@ export default function BallTrackProcessing() {
         </Text>
       ) : (
         <Text style={{ marginTop: 16, textAlign: 'center', fontSize: 13, lineHeight: 20, color: colors.muted }}>
-          Every number is checked before it is shown. You can leave this page — processing continues on the lab.
+          Tracking runs on the lab. Leave this page — the header ring keeps the progress.
         </Text>
       )}
+
+      {!failed ? (
+        <Pressable
+          onPress={() => router.replace('/(tabs)/balltrack')}
+          style={{
+            marginTop: 16,
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: colors.lime,
+            paddingVertical: 14,
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ color: colors.lime, fontWeight: '800' }}>Keep using CricLab</Text>
+        </Pressable>
+      ) : null}
+
+      {waiting ? (
+        <Pressable
+          onPress={() => void onCancel()}
+          disabled={cancelling}
+          style={{ marginTop: 10, paddingVertical: 12, alignItems: 'center' }}
+        >
+          <Text style={{ color: colors.muted, fontWeight: '700' }}>
+            {cancelling ? 'Removing…' : 'Remove from queue'}
+          </Text>
+        </Pressable>
+      ) : null}
 
       {error ? (
         <View style={{ marginTop: 28, gap: 10 }}>

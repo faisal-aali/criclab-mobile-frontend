@@ -17,13 +17,16 @@ export type Metric = {
 
 export type BallTrackJob = {
   id: string
+  kind?: 'ballflight'
   session_id?: string
-  status: 'queued' | 'claimed' | 'processing' | 'completed' | 'failed' | string
+  status: 'queued' | 'claimed' | 'processing' | 'completed' | 'failed' | 'cancelled' | string
   progress: number
   stage?: string
   message?: string
   error?: string
   eta_seconds?: number | null
+  expected_start_at?: string | null
+  scheduled_date?: string | null
   stage_detail?: { current: number; total: number; unit?: string } | null
 }
 

@@ -21,11 +21,13 @@ criclab-web-backend**. This table is what **this Expo repo** should have.
 | FEAT-M12 | Expo Go polish | Planned | Clearer LAN errors, upload progress, offline notice |
 | FEAT-M13 | On-device capture guide | Planned | Overlay tips while recording Action (side-on, full body) |
 | FEAT-M14 | Drawer + tickets | Done | Side drawer: leaderboard, tickets, notifications, coaching |
+| FEAT-M15 | Worker-aligned processing | Done | Cloudinary ingest, `/jobs/active` header ring, leave-while-processing, quota start time / cancel |
 
 ## Inherited lab roadmap (do not implement in this repo)
 
 Done on the server: pose pipeline, Action vs Ball flight, auth, drills,
-leaderboard, bookings, notifications, admin.
+leaderboard, bookings, notifications, admin, **dedicated video workers**,
+**daily quota**, Cloudinary signed upload. Not S3 — ingest is Cloudinary.
 
 If a prompt asks for “better km/h like Fulltrack / lidar”, that is **lab**
 work (stump calibration is already Ball flight), not a mobile-only change and
@@ -37,6 +39,7 @@ not something to paste onto Action results.
 - **27 Aug 2026:** Sibling lab is `Cric-Lab/criclab-web-backend` (not
   CricLabMLReview). Auth required. Brand CricLab. Dark/lime UI. Train +
   leaderboard. Two film modes stay separate.
-- **27 Aug 2026:** Side drawer for Leaderboard, Tickets, Notifications,
-  Coaching. Results back control falls back to the lab tabs when the
-  processing screen was `replace`d away.
+- **3 Sep 2026:** Matched the web workspace: clips go to Cloudinary (not S3)
+  then the website API queues a job for `criclab-video-service`. Header ring
+  polls `/jobs/active` so leaving a tab does not hide progress. Queued jobs
+  show `expected_start_at` and can be cancelled.

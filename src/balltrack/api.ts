@@ -1,3 +1,4 @@
+import { cloudinaryClipUrl, type PickedVideo } from '../api/client'
 import { getApiBase } from '../api/config'
 import { authFetch } from '../api/http'
 import type { BallTrackDelivery, BallTrackJob, BallTrackSession, Box, Calibration } from './types'
@@ -13,13 +14,26 @@ export async function balltrackAssetUrl(path?: string | null) {
   return `${base}${path}`
 }
 
-export function uploadSession(input: { uri: string; name: string; mimeType?: string | null; calibration: Calibration; title?: string }) {
+export async function uploadSession(input: {
+  uri: string
+  name: string
+  mimeType?: string | null
+  calibration: Calibration
+  title?: string
+}) {
   const form = new FormData()
-  form.append('file', {
-    uri: input.uri,
-    name: input.name || 'session.mp4',
-    type: input.mimeType || 'video/mp4',
-  } as unknown as Blob)
+  const video: PickedVideo = { uri: input.uri, name: input.name || 'session.mp4', mimeType: input.mimeType }
+  const remote = await cloudinaryClipUrl(video)
+  if (remote) {
+    form.append('source_url', remote)
+    form.append('original_name', video.name)
+  } else {
+    form.append('file', {
+      uri: video.uri,
+      name: video.name,
+      type: video.mimeType || 'video/mp4',
+    } as unknown as Blob)
+  }
   form.append('calibration', JSON.stringify(input.calibration))
   form.append('title', input.title || 'Ball Track session')
   return request<{ session_id: string; job_id: string; status: string }>('/balltrack/sessions', {
@@ -31,6 +45,10 @@ export function uploadSession(input: { uri: string; name: string; mimeType?: str
 
 export function getBalltrackJob(jobId: string) {
   return request<BallTrackJob>(`/balltrack/jobs/${jobId}`)
+}
+
+export function cancelBalltrackJob(jobId: string) {
+  return request<{ id: string; status: string }>(`/balltrack/jobs/${jobId}/cancel`, { method: 'POST' })
 }
 
 export function listBalltrackSessions() {

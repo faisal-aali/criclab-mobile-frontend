@@ -16,12 +16,13 @@ Never:
 - Recompute km/h, stride, or scores in a React Native component
 - Mix Action numbers into a Ball flight screen (or the reverse)
 
-Pipeline (lab — sibling repo `Cric-Lab/criclab-web-backend`, Python 3.12):
+Pipeline (website API queues; **criclab-video-service** measures):
 
 ```text
-Upload → Extract → POSE (MediaPipe) → Action/release → Calibrate
-  → Best-effort ball track → Metrics JSON → Slow-mo overlay
-  → Cloudinary → Agent (gemma3:4b) → PDF → MongoDB
+Phone → Cloudinary (signed) or POST /videos file
+  → FastAPI inserts queued job
+    → video worker claims → pose → metrics → overlay → Gemma → PDF
+      → phone polls GET /jobs/:id and GET /jobs/active
 ```
 
 Ball flight is a **separate** pipeline (stump calibration → trajectories →
@@ -32,20 +33,24 @@ Phone flow (Action):
 ```text
 Sign in (verified)
   → Action screen (profile + video)
-  → POST /videos (multipart, Bearer)
-  → Processing polls GET /jobs/:id
+  → signed Cloudinary upload when configured, else multipart POST /videos
+  → POST /videos with source_url (Bearer) — FastAPI queues only
+  → stay in the lab (header ring); optional processing screen
+  → GET /jobs/active + GET /jobs/:id until complete
   → Results GET /deliveries/:id
-  → History GET /deliveries
 ```
 
 Phone flow (Ball flight):
 
 ```text
 Align stumps → POST /balltrack/detect-stumps
-  → Film session → POST /balltrack/sessions
-  → Poll GET /balltrack/jobs/:id
+  → Film session → Cloudinary (or multipart) → POST /balltrack/sessions
+  → Poll GET /balltrack/jobs/:id and GET /jobs/active
   → Session / delivery screens
 ```
+
+Closing a tab or leaving the processing screen must not stop the job. CV runs in
+`criclab-video-service`. The header progress ring polls `/jobs/active`.
 
 ## Architecture rule #2 — pose is the measurement engine; ball speed needs a real lock
 
@@ -115,16 +120,19 @@ All writes go through FastAPI (`src/api/http.ts` + `src/api/client.ts`).
 - Base URL from Profile / `EXPO_PUBLIC_API_BASE` / platform default
   (`http://127.0.0.1:8000` iOS sim, `http://10.0.2.2:8000` Android emulator).
 - Hit the lab **directly** (no `/api` Vite proxy). Port 8000.
-- Upload `FormData` with RN file `{ uri, name, type }`. Do not set Content-Type
-  on multipart (boundary must be generated).
+- Upload: signed Cloudinary `source_url` when `/videos/upload-params` is
+  configured; otherwise RN file `{ uri, name, type }` multipart. Do not set
+  Content-Type on multipart (boundary must be generated).
+- Prefer Cloudinary playback URLs (`cloudinaryPlaybackUrl` for HEVC `.mov`).
+- Jobs may include `expected_start_at` (queued) and `eta_seconds` (running).
+  Queued clips can be cancelled. Do not invent a start time on the phone.
 - Relative artifact URLs (`/artifacts/...`) must be prefixed with the API base.
-- Prefer Cloudinary playback URLs when present.
 
 Required Action upload fields (same as web):
 
-`file`, `player_name`, `first_name`, `last_name`, `date_of_birth`, `height_ft`,
-`height_in`, `weight_lbs`, `bowling_arm`, `bowling_style`, optional
-`meters_per_pixel`.
+`file` **or** `source_url` + `original_name`, plus `player_name`, `first_name`,
+`last_name`, `date_of_birth`, `height_ft`, `height_in`, `weight_lbs`,
+`bowling_arm`, `bowling_style`, optional `meters_per_pixel`.
 
 ## Film guidance
 
@@ -159,6 +167,8 @@ follow-through, ball visible in the air after it leaves the hand.
 - Fat components that reimplement backend metrics
 - Hard-coding only `localhost` with no Settings override (physical phones break)
 - Calling the lab without a Bearer token
+- Polling `/jobs/:id` on a full-screen that the user cannot leave
+- Sending every clip as multipart through FastAPI when Cloudinary is configured
 - Mixing Action and Ball flight numbers
 - Batting/fielding features before bowling MVP is solid
 - Reintroducing Notera (notes/PWA) or the retired `CricLabMLReview` path

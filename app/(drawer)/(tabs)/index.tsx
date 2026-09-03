@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react'
 import { Alert, Pressable, Text, TextInput, useWindowDimensions, View } from 'react-native'
 import { uploadVideo, type PickedVideo } from '../../../src/api/client'
 import { consumeActionClip } from '../../../src/camera/pendingActionClip'
+import { useProcessingJobs } from '../../../src/processing/ProcessingJobs'
 import { FieldLabel, fieldInputStyle } from '../../../src/components/ChoiceRow'
 import { ClipPlayer } from '../../../src/components/ClipPlayer'
 import { AppHeader } from '../../../src/components/AppHeader'
@@ -22,6 +23,7 @@ import { colors } from '../../../src/theme'
 
 export default function AnalyzeScreen() {
   const router = useRouter()
+  const { trackJob } = useProcessingJobs()
   const { width } = useWindowDimensions()
   const stackActions = width < 360
   const [profile, setProfile] = useState<SavedProfile>(emptyProfile)
@@ -84,7 +86,16 @@ export default function AnalyzeScreen() {
         bowlingStyle: profile.bowlingStyle as 'pace' | 'spin' | 'medium',
         metersPerPixel: metersPerPixel ? Number(metersPerPixel) : undefined,
       })
-      router.push(`/processing/${res.job_id}`)
+      trackJob({ id: res.job_id, kind: 'action' })
+      setVideo(null)
+      Alert.alert(
+        'Queued for the lab',
+        'Analysis runs in the background. Watch the lime ring in the header — you can keep using the app.',
+        [
+          { text: 'Watch progress', onPress: () => router.push(`/processing/${res.job_id}`) },
+          { text: 'OK' },
+        ],
+      )
     } catch (err) {
       Alert.alert('Upload failed', err instanceof Error ? err.message : 'Could not reach the CricLab API.')
     } finally {

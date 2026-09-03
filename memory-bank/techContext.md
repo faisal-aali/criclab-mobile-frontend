@@ -24,19 +24,23 @@ SDK from memory — use the installed version and
 
 ## Sibling lab (required to analyze a clip)
 
-Path: `/Users/macbookpro/Desktop/Cric-Lab/criclab-web-backend`
+Website API: `/Users/macbookpro/Desktop/Cric-Lab/criclab-web-backend`
+
+Video workers: `/Users/macbookpro/Desktop/Cric-Lab/criclab-video-service`
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| API | Python **3.12** FastAPI (`.venv312`) | Auth, jobs, metrics, artifacts |
-| Pose | MediaPipe BlazePose | Measurement engine |
-| Overlay / PDF | OpenCV + ReportLab | Slow-mo HUD + report |
+| API | Python **3.12** FastAPI (`.venv312`) | Auth, signed upload params, queue insert, job/delivery reads |
+| Workers | `python -m app.worker` | Pose, overlay, PDF, Gemma video notes |
+| Pose | MediaPipe BlazePose | Measurement engine (worker only) |
+| Overlay / PDF | OpenCV + ReportLab | Slow-mo HUD + report (worker only) |
 | DB | MongoDB | Users, deliveries, sessions |
+| Ingest | Cloudinary signed upload | Clip bytes skip the API when configured |
 | LLM | Ollama `gemma3:4b` | Coaching narrative from metrics JSON only |
-| Hosting | Cloudinary + local `/artifacts` | Shareable video + PDF |
 
-Start the lab with `./run.sh` from that backend folder (`--host 0.0.0.0`).
-Uploads fail if that server is down.
+Start the API with `./run.sh` from the backend folder (`--host 0.0.0.0`). Start
+the worker from `criclab-video-service` or jobs stay `queued`. Uploads fail if
+the API is down. Analysis does not finish if the worker is down.
 
 The Vite web app uses a `/api` proxy. **This app does not.** It calls port 8000
 directly.
@@ -46,11 +50,13 @@ directly.
 ```text
 CricLab (Expo)
   → POST http://<lab>:8000/auth/login
-  → POST http://<lab>:8000/videos   (Bearer)
-    → FastAPI job (pose → metrics → overlay → Gemma → PDF)
-      → GET /jobs/:id (poll)
-        → GET /deliveries/:id
-          → Results screen (same JSON as the Vite web app)
+  → GET /videos/upload-params → Cloudinary (when configured)
+  → POST http://<lab>:8000/videos   (Bearer, source_url or file)
+    → FastAPI queues the job
+      → criclab-video-service claims and measures
+        → GET /jobs/active (header ring) + GET /jobs/:id
+          → GET /deliveries/:id
+            → Results screen (same JSON as the Vite web app)
 ```
 
 ## Repo layout
@@ -79,6 +85,8 @@ cric-lab-ai/
 │   ├── api/config.ts         # API base URL
 │   ├── auth/AuthProvider.tsx
 │   ├── balltrack/api.ts
+│   ├── processing/ProcessingJobs.tsx
+│   ├── processing/stages.ts
 │   ├── components/
 │   ├── storage/profile.ts
 │   └── theme.ts              # night / lime / chalk
@@ -90,7 +98,8 @@ cric-lab-ai/
 
 Types in `src/api/client.ts` must stay aligned with
 `Cric-Lab/criclab-web-frontend/src/api/client.ts` (Job including `eta_seconds`,
-Metrics, MetricValue, Delivery, Artifacts, LeaderboardRow, DrillCatalogItem).
+`expected_start_at`, `kind`, Metrics, MetricValue, Delivery, Artifacts,
+LeaderboardRow, DrillCatalogItem).
 
 `metricReady`: no display value unless `status === 'ok'` and value is present.
 
@@ -106,9 +115,11 @@ cd ~/Desktop/cric-lab-ai
 npm install
 npx expo start
 
-# lab (other repo)
+# lab (other repos)
 cd ~/Desktop/Cric-Lab/criclab-web-backend
 ./run.sh
+cd ~/Desktop/Cric-Lab/criclab-video-service
+python -m app.worker
 ```
 
 | Where the app runs | API base (More tab) |

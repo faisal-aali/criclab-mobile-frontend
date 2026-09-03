@@ -7,7 +7,9 @@ import { View } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { AuthProvider, useAuth } from '../src/auth/AuthProvider'
 import { BrandSplash } from '../src/components/BrandSplash'
+import { ProcessingIndicator } from '../src/components/ProcessingIndicator'
 import { StackBackButton } from '../src/components/StackBackButton'
+import { ProcessingJobsProvider } from '../src/processing/ProcessingJobs'
 import { colors } from '../src/theme'
 
 void SplashScreen.preventAutoHideAsync()
@@ -41,6 +43,11 @@ function AuthGate() {
     headerTintColor: colors.chalk,
     headerBackVisible: false as const,
     headerLeft: () => <StackBackButton />,
+    headerRight: () => (
+      <View style={{ marginRight: 12 }}>
+        <ProcessingIndicator />
+      </View>
+    ),
   }
 
   return (
@@ -79,7 +86,9 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.night }}>
       <StatusBar style="light" />
       <AuthProvider>
-        <AuthGate />
+        <ProcessingJobsProvider>
+          <AuthGate />
+        </ProcessingJobsProvider>
       </AuthProvider>
       {showSplash ? <BrandSplash onFinish={hideSplash} /> : null}
     </GestureHandlerRootView>

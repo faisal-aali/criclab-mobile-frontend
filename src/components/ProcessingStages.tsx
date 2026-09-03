@@ -3,7 +3,9 @@ import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg'
 import type { StageDetail } from '../api/client'
 import {
   formatEta,
+  formatExpectedAt,
   formatStageDetail,
+  isWaitingToStart,
   resolveStageIndex,
   stageFraction,
   type PipelineStage,
@@ -21,6 +23,7 @@ export function ProcessingStages({
   status,
   message,
   etaSeconds,
+  expectedStartAt,
   stageDetail,
   failed,
 }: {
@@ -31,12 +34,15 @@ export function ProcessingStages({
   status?: string
   message?: string | null
   etaSeconds?: number | null
+  expectedStartAt?: string | null
   stageDetail?: StageDetail | null
   failed?: boolean
 }) {
   const pct = Math.max(0, Math.min(100, progress ?? 0))
   const currentIdx = resolveStageIndex(stages, stage, doneKey)
-  const etaLabel = failed ? null : formatEta(etaSeconds)
+  const waiting = isWaitingToStart(status)
+  const etaLabel = failed || waiting ? null : formatEta(etaSeconds)
+  const expectedLabel = waiting ? formatExpectedAt(expectedStartAt) : null
   const dashOffset = CIRC * (1 - pct / 100)
 
   return (
@@ -100,7 +106,13 @@ export function ProcessingStages({
           }}
         >
           <Text style={{ fontSize: 12, fontWeight: '700', color: colors.chalk }}>
-            {etaLabel ? `Estimated time remaining: ${etaLabel.toLowerCase()}` : 'Estimating time remaining…'}
+            {expectedLabel
+              ? `Expected start: ${expectedLabel}`
+              : etaLabel
+                ? `Estimated time remaining: ${etaLabel.toLowerCase()}`
+                : waiting
+                  ? 'Waiting for a lab slot…'
+                  : 'Estimating time remaining…'}
           </Text>
         </View>
       ) : null}
