@@ -1,3 +1,5 @@
+import type { Analysis } from '../api/client'
+
 export type Box = { x: number; y: number; w: number; h: number }
 
 export type Calibration = {
@@ -54,6 +56,7 @@ export type BallTrackSession = {
   created_at?: string
   delivery_count?: number
   error?: string
+  analysis?: Analysis
   artifacts?: {
     overlay_url?: string
     pitch_map_url?: string

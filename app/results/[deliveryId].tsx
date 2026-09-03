@@ -13,6 +13,7 @@ import {
   type Scores,
 } from '../../src/api/client'
 import { ClipPlayer } from '../../src/components/ClipPlayer'
+import { DrillShelf } from '../../src/components/DrillShelf'
 import { MetricCard } from '../../src/components/MetricCard'
 import { Screen } from '../../src/components/Screen'
 import { EmptyState, ResultsShimmer } from '../../src/shimmer'
@@ -143,6 +144,7 @@ export default function ResultsScreen() {
   const [pdfHref, setPdfHref] = useState('')
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [playingId, setPlayingId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!deliveryId) return
@@ -416,6 +418,15 @@ export default function ResultsScreen() {
       {a.confidence_note ? (
         <Text style={{ marginTop: 4, fontSize: 12, color: colors.muted }}>{a.confidence_note}</Text>
       ) : null}
+
+      <DrillShelf
+        heading="Drills for this delivery"
+        lead="Matched to this report from the CricLab catalog. Play them here."
+        drills={a.recommendations}
+        playingId={playingId}
+        onPlay={setPlayingId}
+        eager
+      />
     </Screen>
   )
 }

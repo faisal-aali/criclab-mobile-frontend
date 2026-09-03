@@ -94,7 +94,7 @@ Frontend gates are UX. The backend is the boundary.
 | `app/(drawer)/(tabs)/index.tsx` | Action — profile + pick/record video |
 | `app/(drawer)/(tabs)/balltrack.tsx` | Ball flight hub |
 | `app/(drawer)/(tabs)/history.tsx` | Past Action deliveries |
-| `app/(drawer)/(tabs)/train.tsx` | Drill library |
+| `app/(drawer)/(tabs)/train.tsx` | Drill library + recommended shelf from latest report |
 | `app/(drawer)/(tabs)/profile.tsx` | Account, bowling profile, lab URL |
 | `app/(drawer)/leaderboard.tsx` | Top measured Action throws |
 | `app/(drawer)/tickets/*` | Support tickets (list, thread, reply) |
@@ -182,6 +182,6 @@ follow-through, ball visible in the air after it leaves the hand.
 5. Results: overlay, original, tiles, sequence, scores, metrics, AI, PDF
 6. History list (own deliveries)
 7. Ball flight session flow
-8. Train drills + leaderboard
+8. Train drills (in-app play + recommended from latest report) + leaderboard
 9. Configurable API base + health check
 10. Side drawer: tickets, notifications, coaching

@@ -5,6 +5,7 @@ import { metricReady } from '../../../src/api/client'
 import { balltrackAssetUrl, getBalltrackSession } from '../../../src/balltrack/api'
 import type { BallTrackSession } from '../../../src/balltrack/types'
 import { ClipPlayer } from '../../../src/components/ClipPlayer'
+import { DrillShelf } from '../../../src/components/DrillShelf'
 import { Screen } from '../../../src/components/Screen'
 import { EmptyState, SessionShimmer } from '../../../src/shimmer'
 import { colors } from '../../../src/theme'
@@ -17,6 +18,7 @@ export default function BallTrackSessionScreen() {
   const [overlayUrl, setOverlayUrl] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [playingId, setPlayingId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!sessionId) return
@@ -106,6 +108,15 @@ export default function BallTrackSessionScreen() {
               })}
             </View>
           )}
+
+          <DrillShelf
+            heading="Drills for this session"
+            lead="Matched to this Ball flight report from the CricLab catalog. Play them here."
+            drills={data?.analysis?.recommendations}
+            playingId={playingId}
+            onPlay={setPlayingId}
+            eager
+          />
         </>
       ) : null}
     </Screen>

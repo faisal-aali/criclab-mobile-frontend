@@ -105,6 +105,16 @@ export type DrillCatalogItem = {
   tags: string[]
 }
 
+export type DrillRecommendation = {
+  drill_id: string
+  youtube_id: string
+  title: string
+  tags?: string[]
+  reason?: string
+  priority?: number
+  source?: string
+}
+
 export type LeaderboardRow = {
   rank: number
   player_name: string
@@ -123,6 +133,7 @@ export type Analysis = {
   strengths?: string
   improvements?: string
   confidence_note?: string
+  recommendations?: DrillRecommendation[]
   comparison?: {
     current_speed_kmh?: number | null
     previous_avg_speed_kmh?: number | null
