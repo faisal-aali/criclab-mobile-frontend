@@ -26,6 +26,7 @@ export default function CoachingScreen() {
   const [slot, setSlot] = useState<string | null>(null)
   const [focus, setFocus] = useState('')
   const [busy, setBusy] = useState(false)
+  const [moving, setMoving] = useState<Booking | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -67,22 +68,43 @@ export default function CoachingScreen() {
     if (!picked || !slot) return
     setBusy(true)
     try {
-      await coaching.book({
-        coach: picked.slug,
-        starts_at: slot,
-        session_type: sessionType || picked.session_types[0]?.id,
-        focus: focus.trim() || undefined,
-      })
-      setPicked(null)
-      setSlot(null)
-      setFocus('')
-      await load()
-      Alert.alert('Booked', 'The session is on your calendar.')
+      if (moving) {
+        await coaching.reschedule(moving.id, slot)
+        setMoving(null)
+        setPicked(null)
+        setSlot(null)
+        await load()
+        Alert.alert('Moved', 'Your session is on the new slot.')
+      } else {
+        await coaching.book({
+          coach: picked.slug,
+          starts_at: slot,
+          session_type: sessionType || picked.session_types[0]?.id,
+          focus: focus.trim() || undefined,
+        })
+        setPicked(null)
+        setSlot(null)
+        setFocus('')
+        await load()
+        Alert.alert('Booked', 'The session is on your calendar.')
+      }
     } catch (err) {
-      Alert.alert('Could not book', err instanceof Error ? err.message : 'Try another slot.')
+      Alert.alert(moving ? 'Could not move' : 'Could not book', err instanceof Error ? err.message : 'Try another slot.')
     } finally {
       setBusy(false)
     }
+  }
+
+  function startMove(booking: Booking) {
+    const coach = coaches.find((c) => c.id === booking.coach.id || c.slug === booking.coach.slug)
+    if (!coach) {
+      Alert.alert('Could not move', 'That coach is not in the list right now.')
+      return
+    }
+    setMoving(booking)
+    setPicked(coach)
+    setSessionType(booking.session_type)
+    setSlot(null)
   }
 
   function onCancel(booking: Booking) {
@@ -137,7 +159,12 @@ export default function CoachingScreen() {
                 {b.session_label}
                 {b.focus ? ` · ${b.focus}` : ''} · {b.status}
               </Text>
-              {b.can_cancel ? (
+                  {b.can_reschedule ? (
+                    <Pressable onPress={() => startMove(b)} style={{ marginTop: 10 }}>
+                      <Text style={{ color: colors.lime, fontWeight: '800' }}>Move session</Text>
+                    </Pressable>
+                  ) : null}
+                  {b.can_cancel ? (
                 <Pressable onPress={() => onCancel(b)} style={{ marginTop: 10 }}>
                   <Text style={{ color: colors.ball, fontWeight: '800' }}>Cancel session</Text>
                 </Pressable>
@@ -166,6 +193,7 @@ export default function CoachingScreen() {
                 onPress={() => {
                   if (open) {
                     setPicked(null)
+                    setMoving(null)
                     return
                   }
                   setPicked(c)
@@ -266,7 +294,9 @@ export default function CoachingScreen() {
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ color: colors.onLime, fontWeight: '800' }}>{busy ? 'Booking…' : 'Book this slot'}</Text>
+                    <Text style={{ color: colors.onLime, fontWeight: '800' }}>
+                      {busy ? (moving ? 'Moving…' : 'Booking…') : moving ? 'Move to this slot' : 'Book this slot'}
+                    </Text>
                   </Pressable>
                 </View>
               ) : null}

@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router'
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, Pressable, Text, TextInput, View } from 'react-native'
 import { getHealth } from '../../../src/api/client'
+import { auth } from '../../../src/api/auth'
 import { defaultBase, getApiBase, setApiBase, suggestedLanHint } from '../../../src/api/config'
 import { useAuth } from '../../../src/auth/AuthProvider'
 import { AppHeader } from '../../../src/components/AppHeader'
@@ -20,12 +21,15 @@ import { colors } from '../../../src/theme'
 
 export default function ProfileScreen() {
   const router = useRouter()
-  const { user, signOut } = useAuth()
+  const { user, signOut, adopt } = useAuth()
   const [profile, setProfile] = useState<SavedProfile>(emptyProfile)
   const [saving, setSaving] = useState(false)
   const [apiBase, setApiBaseField] = useState('')
   const [health, setHealth] = useState<string | null>(null)
   const [pinging, setPinging] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [pwBusy, setPwBusy] = useState(false)
 
   useEffect(() => {
     loadProfile().then(setProfile)
@@ -59,6 +63,43 @@ export default function ProfileScreen() {
     const next = await setApiBase(apiBase || defaultBase())
     setApiBaseField(next)
     Alert.alert('Saved', 'The phone will call this lab URL on the next request.')
+  }
+
+  async function onChangePassword() {
+    if (newPassword.length < 8) {
+      Alert.alert('New password', 'Use at least 8 characters.')
+      return
+    }
+    setPwBusy(true)
+    try {
+      const result = await auth.changePassword(currentPassword, newPassword)
+      adopt(result)
+      setCurrentPassword('')
+      setNewPassword('')
+      Alert.alert('Password updated', 'Other devices were signed out.')
+    } catch (err) {
+      Alert.alert('Could not update', err instanceof Error ? err.message : 'Check your current password.')
+    } finally {
+      setPwBusy(false)
+    }
+  }
+
+  function onSignOutEverywhere() {
+    Alert.alert('Sign out everywhere?', 'Every device using this account will need to sign in again.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign out everywhere',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await auth.signOutEverywhere()
+          } catch {
+            /* local session still ends */
+          }
+          await signOut()
+        },
+      },
+    ])
   }
 
   async function onPing() {
@@ -123,6 +164,48 @@ export default function ProfileScreen() {
           style={{ marginTop: 12, paddingVertical: 10, alignItems: 'center' }}
         >
           <Text style={{ color: colors.ball, fontWeight: '800' }}>Sign out</Text>
+        </Pressable>
+        <Pressable onPress={onSignOutEverywhere} style={{ marginTop: 4, paddingVertical: 10, alignItems: 'center' }}>
+          <Text style={{ color: colors.muted, fontWeight: '800' }}>Sign out everywhere</Text>
+        </Pressable>
+      </SectionCard>
+
+      <SectionCard>
+        <Text style={{ fontWeight: '800', color: colors.chalk }}>Password</Text>
+        <Text style={{ marginTop: 6, fontSize: 12, color: colors.muted, lineHeight: 18 }}>
+          Changing it ends other sessions. This phone stays signed in.
+        </Text>
+        <FieldLabel>Current password</FieldLabel>
+        <TextInput
+          style={fieldInputStyle}
+          value={currentPassword}
+          onChangeText={setCurrentPassword}
+          secureTextEntry
+          autoCapitalize="none"
+        />
+        <FieldLabel>New password</FieldLabel>
+        <TextInput
+          style={fieldInputStyle}
+          value={newPassword}
+          onChangeText={setNewPassword}
+          secureTextEntry
+          autoCapitalize="none"
+        />
+        <Pressable
+          onPress={() => void onChangePassword()}
+          disabled={pwBusy || !currentPassword || !newPassword}
+          style={{
+            marginTop: 14,
+            backgroundColor: colors.charcoal,
+            borderWidth: 1,
+            borderColor: colors.line,
+            opacity: pwBusy || !currentPassword || !newPassword ? 0.5 : 1,
+            borderRadius: 12,
+            paddingVertical: 12,
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ color: colors.chalk, fontWeight: '800' }}>{pwBusy ? 'Updating…' : 'Update password'}</Text>
         </Pressable>
       </SectionCard>
 

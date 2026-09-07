@@ -7,7 +7,7 @@ import { View } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { AuthProvider, useAuth } from '../src/auth/AuthProvider'
 import { BrandSplash } from '../src/components/BrandSplash'
-import { ProcessingIndicator } from '../src/components/ProcessingIndicator'
+import { HeaderChrome } from '../src/components/HeaderChrome'
 import { StackBackButton } from '../src/components/StackBackButton'
 import { ProcessingJobsProvider } from '../src/processing/ProcessingJobs'
 import { colors } from '../src/theme'
@@ -45,7 +45,7 @@ function AuthGate() {
     headerLeft: () => <StackBackButton />,
     headerRight: () => (
       <View style={{ marginRight: 12 }}>
-        <ProcessingIndicator />
+            <HeaderChrome />
       </View>
     ),
   }

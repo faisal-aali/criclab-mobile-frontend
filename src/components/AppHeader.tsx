@@ -4,7 +4,7 @@ import { useNavigation } from 'expo-router'
 import { Pressable, View } from 'react-native'
 import { colors } from '../theme'
 import { Logo } from './Logo'
-import { ProcessingIndicator } from './ProcessingIndicator'
+import { HeaderChrome } from './HeaderChrome'
 
 export function AppHeader() {
   const navigation = useNavigation()
@@ -14,7 +14,7 @@ export function AppHeader() {
         <Logo />
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <ProcessingIndicator />
+        <HeaderChrome />
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Open menu"

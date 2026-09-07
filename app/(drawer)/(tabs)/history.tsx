@@ -57,6 +57,9 @@ export default function HistoryScreen() {
           const ballOk = metricReady(ball)
           const style = d.metrics?.player_profile?.bowling_style
           const armSide = d.metrics?.player_profile?.bowling_arm || d.metrics?.throwing_side
+          const pace = d.metrics?.delivery_type
+          const paceOk = pace?.status === 'ok' && Boolean(pace?.value)
+          const slowMo = Boolean(d.metrics?.timebase?.slow_motion || d.metrics?.quality?.slow_motion)
           return (
             <Pressable
               key={d.id}
@@ -81,6 +84,42 @@ export default function HistoryScreen() {
                   {armSide ? ` · ${armSide}-arm` : ''}
                   {style ? ` · ${style}` : ''}
                 </Text>
+                {paceOk || slowMo ? (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                    {paceOk ? (
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: '800',
+                          color: colors.onLime,
+                          backgroundColor: colors.lime,
+                          overflow: 'hidden',
+                          borderRadius: 999,
+                          paddingHorizontal: 8,
+                          paddingVertical: 3,
+                        }}
+                      >
+                        {pace!.value}
+                      </Text>
+                    ) : null}
+                    {slowMo ? (
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: '700',
+                          color: colors.amber,
+                          borderWidth: 1,
+                          borderColor: 'rgba(245,193,108,0.4)',
+                          borderRadius: 999,
+                          paddingHorizontal: 8,
+                          paddingVertical: 3,
+                        }}
+                      >
+                        Slow-mo recovered
+                      </Text>
+                    ) : null}
+                  </View>
+                ) : null}
                 {d.analysis_summary ? (
                   <Text numberOfLines={2} style={{ marginTop: 8, fontSize: 13, color: colors.ink, lineHeight: 18 }}>
                     {d.analysis_summary}

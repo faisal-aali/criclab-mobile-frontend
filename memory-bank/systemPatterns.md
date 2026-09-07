@@ -110,7 +110,7 @@ Flight, History, Train, More. Analysis routes sit on the root stack so they
 cover the tabs; their back control must pop if possible and otherwise return
 to `/` (processing uses `replace` onto results, which can leave no history).
 
-Results must show: analyzed video, metric cards, scores, AI summary, PDF. Poll
+Results must show: analyzed video, honesty panel (pace / 15° screen / capture), metric cards, scores, AI summary, PDF. Poll
 job status; never block without progress.
 
 All writes go through FastAPI (`src/api/http.ts` + `src/api/client.ts`).

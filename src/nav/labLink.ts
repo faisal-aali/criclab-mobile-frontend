@@ -1,11 +1,16 @@
 import type { Href } from 'expo-router'
 
+function firstSegment(path: string, prefix: string) {
+  return path.slice(prefix.length).replace(/\/$/, '').split('/')[0] || ''
+}
+
 /** Map web workspace paths from notification `link` fields onto Expo routes. */
 export function openLabLink(router: { push: (href: Href) => void }, link: string | null) {
   if (!link) return
-  const path = link.replace(/^https?:\/\/[^/]+/, '')
+  const path = link.replace(/^https?:\/\/[^/]+/, '').split('?')[0]
+
   if (path.startsWith('/app/support/')) {
-    router.push(`/tickets/${path.slice('/app/support/'.length)}` as Href)
+    router.push(`/tickets/${firstSegment(path, '/app/support/')}` as Href)
     return
   }
   if (path === '/app/support') {
@@ -33,7 +38,19 @@ export function openLabLink(router: { push: (href: Href) => void }, link: string
     return
   }
   if (path.startsWith('/app/results/')) {
-    router.push(`/results/${path.slice('/app/results/'.length)}` as Href)
+    router.push(`/results/${firstSegment(path, '/app/results/')}` as Href)
+    return
+  }
+  if (path.startsWith('/app/processing/')) {
+    router.push(`/processing/${firstSegment(path, '/app/processing/')}` as Href)
+    return
+  }
+  if (path.startsWith('/app/ball-flight/processing/')) {
+    router.push(`/balltrack/processing/${firstSegment(path, '/app/ball-flight/processing/')}` as Href)
+    return
+  }
+  if (path.startsWith('/app/ball-flight/results/')) {
+    router.push(`/balltrack/session/${firstSegment(path, '/app/ball-flight/results/')}` as Href)
     return
   }
   if (path.startsWith('/app/ball-flight')) {

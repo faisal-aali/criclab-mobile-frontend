@@ -1,7 +1,7 @@
 import { Drawer } from 'expo-router/drawer'
 import { View, useWindowDimensions } from 'react-native'
 import { DrawerContent } from '../../src/components/DrawerContent'
-import { ProcessingIndicator } from '../../src/components/ProcessingIndicator'
+import { HeaderChrome } from '../../src/components/HeaderChrome'
 import { colors } from '../../src/theme'
 
 export const unstable_settings = {
@@ -22,7 +22,7 @@ export default function DrawerLayout() {
         headerTitleAlign: 'center',
         headerRight: () => (
           <View style={{ marginRight: 10 }}>
-            <ProcessingIndicator />
+            <HeaderChrome />
           </View>
         ),
         drawerType: 'front',

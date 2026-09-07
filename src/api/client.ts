@@ -58,6 +58,43 @@ export type PlayerProfile = {
   bowling_style?: 'pace' | 'spin' | 'medium' | string
 }
 
+export type DeliveryType = {
+  value?: string | null
+  basis?: string | null
+  speed_kmh?: number | null
+  profile_style?: string | null
+  band_edge_caveat?: boolean
+  note?: string | null
+  status?: string
+}
+
+export type ActionLegality = {
+  verdict?: string | null
+  assessable?: boolean
+  limit_deg?: number
+  extension_deg?: number | null
+  elbow_at_arm_horizontal_deg?: number | null
+  elbow_at_release_deg?: number | null
+  note?: string | null
+  status?: string
+}
+
+export type SpeedConsistency = {
+  ok?: boolean | null
+  ratio?: number | null
+  note?: string | null
+}
+
+export type Timebase = {
+  fps?: number | null
+  container_fps?: number | null
+  measured_fps?: number | null
+  slow_motion?: boolean
+  slow_factor?: number | null
+  source?: string | null
+  note?: string | null
+}
+
 export type Metrics = {
   throwing_side?: string | null
   player_profile?: PlayerProfile
@@ -75,6 +112,10 @@ export type Metrics = {
   elbow_extension_deg?: MetricValue
   front_knee_flexion_deg?: MetricValue
   hip_shoulder_separation_deg?: MetricValue
+  delivery_type?: DeliveryType
+  action_legality?: ActionLegality
+  speed_consistency?: SpeedConsistency
+  timebase?: Timebase
   scores?: Scores
   quality?: {
     pose_frames?: number
@@ -83,6 +124,9 @@ export type Metrics = {
     camera_view?: string
     camera_view_note?: string
     speed_view_ok?: boolean
+    speed_view_from_ball?: boolean
+    capture_fps?: number
+    slow_motion?: boolean
   }
   kinematic_sequence?: {
     n?: number
@@ -218,11 +262,24 @@ function rnFilePart(video: PickedVideo) {
   } as unknown as Blob
 }
 
-async function postForm(url: string, body: FormData): Promise<string> {
+export type ClipUploadProgress = {
+  phase: 'cloudinary' | 'handoff'
+  loaded: number
+  total: number
+}
+
+async function postForm(
+  url: string,
+  body: FormData,
+  onProgress?: (loaded: number, total: number) => void,
+): Promise<string> {
   if (typeof XMLHttpRequest !== 'undefined') {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest()
       xhr.open('POST', url)
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) onProgress?.(event.loaded, event.total)
+      }
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           resolve(xhr.responseText)
@@ -244,7 +301,10 @@ async function postForm(url: string, body: FormData): Promise<string> {
  * then queues a job; criclab-video-service claims it. Null = local lab
  * without Cloudinary — fall back to multipart through FastAPI.
  */
-export async function cloudinaryClipUrl(video: PickedVideo): Promise<string | null> {
+export async function cloudinaryClipUrl(
+  video: PickedVideo,
+  onProgress?: (p: ClipUploadProgress) => void,
+): Promise<string | null> {
   let params: CloudinaryUploadParams
   try {
     params = await request<CloudinaryUploadParams>('/videos/upload-params')
@@ -268,7 +328,11 @@ export async function cloudinaryClipUrl(video: PickedVideo): Promise<string | nu
   body.append('folder', params.folder || 'criclab/incoming')
   if (params.eager) body.append('eager', params.eager)
   if (params.eager_async) body.append('eager_async', params.eager_async)
-  const raw = await postForm(`https://api.cloudinary.com/v1_1/${params.cloud_name}/video/upload`, body)
+  const raw = await postForm(
+    `https://api.cloudinary.com/v1_1/${params.cloud_name}/video/upload`,
+    body,
+    (loaded, total) => onProgress?.({ phase: 'cloudinary', loaded, total }),
+  )
   const json = JSON.parse(raw) as { secure_url?: string }
   if (!json.secure_url) {
     throw new Error('Could not upload the video. Try a shorter clip.')
@@ -285,22 +349,25 @@ function mimeFromName(name: string) {
   return 'video/mp4'
 }
 
-export async function uploadVideo(input: {
-  video: PickedVideo
-  playerName: string
-  firstName: string
-  lastName: string
-  dateOfBirth: string
-  heightFt: number
-  heightIn: number
-  weightLbs: number
-  bowlingArm: 'left' | 'right'
-  bowlingStyle: 'pace' | 'spin' | 'medium'
-  metersPerPixel?: number
-}) {
+export async function uploadVideo(
+  input: {
+    video: PickedVideo
+    playerName: string
+    firstName: string
+    lastName: string
+    dateOfBirth: string
+    heightFt: number
+    heightIn: number
+    weightLbs: number
+    bowlingArm: 'left' | 'right'
+    bowlingStyle: 'pace' | 'spin' | 'medium'
+    metersPerPixel?: number
+  },
+  onProgress?: (p: ClipUploadProgress) => void,
+) {
   const form = new FormData()
   const name = input.video.name || 'delivery.mp4'
-  const remote = await cloudinaryClipUrl(input.video)
+  const remote = await cloudinaryClipUrl(input.video, onProgress)
   if (remote) {
     form.append('source_url', remote)
     form.append('original_name', name)
@@ -319,6 +386,7 @@ export async function uploadVideo(input: {
   if (input.metersPerPixel != null && !Number.isNaN(input.metersPerPixel)) {
     form.append('meters_per_pixel', String(input.metersPerPixel))
   }
+  onProgress?.({ phase: 'handoff', loaded: 1, total: 1 })
   return request<{ video_id: string; job_id: string; status: string }>('/videos', {
     method: 'POST',
     body: form,

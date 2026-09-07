@@ -1,4 +1,4 @@
-import { cloudinaryClipUrl, type PickedVideo } from '../api/client'
+import { cloudinaryClipUrl, type ClipUploadProgress, type PickedVideo } from '../api/client'
 import { getApiBase } from '../api/config'
 import { authFetch } from '../api/http'
 import type { BallTrackDelivery, BallTrackJob, BallTrackSession, Box, Calibration } from './types'
@@ -14,16 +14,19 @@ export async function balltrackAssetUrl(path?: string | null) {
   return `${base}${path}`
 }
 
-export async function uploadSession(input: {
-  uri: string
-  name: string
-  mimeType?: string | null
-  calibration: Calibration
-  title?: string
-}) {
+export async function uploadSession(
+  input: {
+    uri: string
+    name: string
+    mimeType?: string | null
+    calibration: Calibration
+    title?: string
+  },
+  onProgress?: (p: ClipUploadProgress) => void,
+) {
   const form = new FormData()
   const video: PickedVideo = { uri: input.uri, name: input.name || 'session.mp4', mimeType: input.mimeType }
-  const remote = await cloudinaryClipUrl(video)
+  const remote = await cloudinaryClipUrl(video, onProgress)
   if (remote) {
     form.append('source_url', remote)
     form.append('original_name', video.name)
@@ -36,6 +39,7 @@ export async function uploadSession(input: {
   }
   form.append('calibration', JSON.stringify(input.calibration))
   form.append('title', input.title || 'Ball Track session')
+  onProgress?.({ phase: 'handoff', loaded: 1, total: 1 })
   return request<{ session_id: string; job_id: string; status: string }>('/balltrack/sessions', {
     method: 'POST',
     body: form,

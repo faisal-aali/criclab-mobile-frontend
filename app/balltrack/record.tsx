@@ -6,6 +6,8 @@ import { useRef, useState } from 'react'
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { detectStumps, uploadSession } from '../../src/balltrack/api'
+import { ClipUploadOverlay } from '../../src/components/ClipUploadOverlay'
+import type { ClipUploadProgress } from '../../src/api/client'
 import { DraggableStumpBox, PitchOverlay } from '../../src/balltrack/pitchGuide'
 import { BATTER_BOX, BOWLER_BOX, type Box } from '../../src/balltrack/types'
 import { SlowMoCamera, hasHighSpeedCameraNative, type SlowMoCameraHandle } from '../../src/camera/SlowMoCamera'
@@ -25,6 +27,7 @@ export default function BallTrackRecord() {
   const [phase, setPhase] = useState<Phase>('align')
   const [recording, setRecording] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<ClipUploadProgress | null>(null)
   const [finding, setFinding] = useState(false)
   const [hintBowler, setHintBowler] = useState<Box>(BOWLER_BOX)
   const [hintBatter, setHintBatter] = useState<Box>(BATTER_BOX)
@@ -81,12 +84,16 @@ export default function BallTrackRecord() {
       const clip = await cameraRef.current?.record({ maxDuration: 180 })
       if (!clip?.uri) return
       setBusy(true)
-      const res = await uploadSession({
-        uri: clip.uri,
-        name: 'session.mp4',
-        mimeType: 'video/mp4',
-        calibration: { bowler, batter, pitch_length_m: 20.12 },
-      })
+      setUploadProgress({ phase: 'cloudinary', loaded: 0, total: 1 })
+      const res = await uploadSession(
+        {
+          uri: clip.uri,
+          name: 'session.mp4',
+          mimeType: 'video/mp4',
+          calibration: { bowler, batter, pitch_length_m: 20.12 },
+        },
+        setUploadProgress,
+      )
       trackJob({ id: res.job_id, kind: 'ballflight' })
       Alert.alert(
         'Queued for the lab',
@@ -101,6 +108,7 @@ export default function BallTrackRecord() {
     } finally {
       setRecording(false)
       setBusy(false)
+      setUploadProgress(null)
     }
   }
 
@@ -181,6 +189,7 @@ export default function BallTrackRecord() {
           </Pressable>
         )}
       </View>
+      <ClipUploadOverlay progress={uploadProgress} label="Ball flight" />
     </View>
   )
 }

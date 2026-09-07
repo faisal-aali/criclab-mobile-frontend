@@ -3,9 +3,10 @@ import * as ImagePicker from 'expo-image-picker'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { Alert, Pressable, Text, TextInput, useWindowDimensions, View } from 'react-native'
-import { uploadVideo, type PickedVideo } from '../../../src/api/client'
+import { uploadVideo, type ClipUploadProgress, type PickedVideo } from '../../../src/api/client'
 import { consumeActionClip } from '../../../src/camera/pendingActionClip'
 import { useProcessingJobs } from '../../../src/processing/ProcessingJobs'
+import { ClipUploadOverlay } from '../../../src/components/ClipUploadOverlay'
 import { FieldLabel, fieldInputStyle } from '../../../src/components/ChoiceRow'
 import { ClipPlayer } from '../../../src/components/ClipPlayer'
 import { AppHeader } from '../../../src/components/AppHeader'
@@ -30,6 +31,7 @@ export default function AnalyzeScreen() {
   const [video, setVideo] = useState<PickedVideo | null>(null)
   const [metersPerPixel, setMetersPerPixel] = useState('')
   const [busy, setBusy] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<ClipUploadProgress | null>(null)
 
   useFocusEffect(
     useCallback(() => {
@@ -72,20 +74,24 @@ export default function AnalyzeScreen() {
       return
     }
     setBusy(true)
+    setUploadProgress({ phase: 'cloudinary', loaded: 0, total: 1 })
     try {
-      const res = await uploadVideo({
-        video,
-        playerName: `${profile.firstName.trim()} ${profile.lastName.trim()}`,
-        firstName: profile.firstName.trim(),
-        lastName: profile.lastName.trim(),
-        dateOfBirth: profile.dob.trim(),
-        heightFt: Number(profile.heightFt) || 0,
-        heightIn: Number(profile.heightIn) || 0,
-        weightLbs: Number(profile.weightLbs),
-        bowlingArm: profile.bowlingArm as 'left' | 'right',
-        bowlingStyle: profile.bowlingStyle as 'pace' | 'spin' | 'medium',
-        metersPerPixel: metersPerPixel ? Number(metersPerPixel) : undefined,
-      })
+      const res = await uploadVideo(
+        {
+          video,
+          playerName: `${profile.firstName.trim()} ${profile.lastName.trim()}`,
+          firstName: profile.firstName.trim(),
+          lastName: profile.lastName.trim(),
+          dateOfBirth: profile.dob.trim(),
+          heightFt: Number(profile.heightFt) || 0,
+          heightIn: Number(profile.heightIn) || 0,
+          weightLbs: Number(profile.weightLbs),
+          bowlingArm: profile.bowlingArm as 'left' | 'right',
+          bowlingStyle: profile.bowlingStyle as 'pace' | 'spin' | 'medium',
+          metersPerPixel: metersPerPixel ? Number(metersPerPixel) : undefined,
+        },
+        setUploadProgress,
+      )
       trackJob({ id: res.job_id, kind: 'action' })
       setVideo(null)
       Alert.alert(
@@ -100,6 +106,7 @@ export default function AnalyzeScreen() {
       Alert.alert('Upload failed', err instanceof Error ? err.message : 'Could not reach the CricLab API.')
     } finally {
       setBusy(false)
+      setUploadProgress(null)
     }
   }
 
@@ -236,6 +243,7 @@ export default function AnalyzeScreen() {
           </Text>
         </Pressable>
       </SectionCard>
+      <ClipUploadOverlay progress={uploadProgress} label="Action clip" />
     </Screen>
   )
 }

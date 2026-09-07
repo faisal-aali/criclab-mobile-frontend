@@ -3,7 +3,7 @@ import * as WebBrowser from 'expo-web-browser'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { useFallbackBack } from '../../src/nav/back'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, Image, Text, View } from 'react-native'
 import {
   assetUrl,
   getDelivery,
@@ -13,6 +13,7 @@ import {
   type Scores,
 } from '../../src/api/client'
 import { ClipPlayer } from '../../src/components/ClipPlayer'
+import { DeliveryHonesty } from '../../src/components/DeliveryHonesty'
 import { DrillShelf } from '../../src/components/DrillShelf'
 import { MetricCard } from '../../src/components/MetricCard'
 import { Screen } from '../../src/components/Screen'
@@ -141,6 +142,7 @@ export default function ResultsScreen() {
   const [error, setError] = useState<string | null>(null)
   const [processedSrc, setProcessedSrc] = useState('')
   const [originalSrc, setOriginalSrc] = useState('')
+  const [stillSrc, setStillSrc] = useState('')
   const [pdfHref, setPdfHref] = useState('')
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -158,11 +160,13 @@ export default function ResultsScreen() {
         const cloud = artifacts.cloudinary_video_url || ''
         const overlay = artifacts.overlay_video_url ? await assetUrl(artifacts.overlay_video_url) : ''
         const original = artifacts.original_video_url ? await assetUrl(artifacts.original_video_url) : ''
+        const still = artifacts.release_still_url ? await assetUrl(artifacts.release_still_url) : ''
         const pdf = artifacts.pdf_url
           ? `${await assetUrl(artifacts.pdf_url)}?download=1`
           : artifacts.cloudinary_pdf_url || ''
         setProcessedSrc(cloud ? await assetUrl(cloud) : overlay)
         setOriginalSrc(original)
+        setStillSrc(still)
         setPdfHref(pdf)
       })
       .catch((err) => {
@@ -262,6 +266,7 @@ export default function ResultsScreen() {
       <View style={{ marginTop: 16 }}>
         <ReliabilityBanner data={data} />
       </View>
+      <DeliveryHonesty metrics={m} />
 
       {originalSrc ? (
         <View style={{ marginTop: 16 }}>
@@ -271,6 +276,32 @@ export default function ResultsScreen() {
       {processedSrc ? (
         <View style={{ marginTop: 16 }}>
           <ClipPlayer uri={processedSrc} label="After · slow-motion + overlays" />
+        </View>
+      ) : stillSrc ? (
+        <View
+          style={{
+            marginTop: 16,
+            overflow: 'hidden',
+            borderRadius: 20,
+            borderWidth: 1,
+            borderColor: colors.line,
+            backgroundColor: '#000',
+          }}
+        >
+          <Text
+            style={{
+              backgroundColor: colors.pitchDeep,
+              paddingHorizontal: 14,
+              paddingVertical: 10,
+              color: 'rgba(255,255,255,0.75)',
+              fontSize: 11,
+              fontWeight: '800',
+              letterSpacing: 0.8,
+            }}
+          >
+            RELEASE FRAME
+          </Text>
+          <Image source={{ uri: stillSrc }} style={{ width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' }} />
         </View>
       ) : null}
 

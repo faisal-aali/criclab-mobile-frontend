@@ -44,6 +44,7 @@ export type Booking = {
   focus: string
   notes: string
   can_cancel: boolean
+  can_reschedule: boolean
   cancel_window_hours: number
 }
 
@@ -71,6 +72,12 @@ export const coaching = {
     authFetch<{ booking: Booking }>(`/coaching/bookings/${id}/cancel`, {
       method: 'POST',
       body: JSON.stringify({ reason }),
+    }),
+
+  reschedule: (id: string, starts_at: string) =>
+    authFetch<{ booking: Booking }>(`/coaching/bookings/${id}/reschedule`, {
+      method: 'POST',
+      body: JSON.stringify({ starts_at }),
     }),
 }
 

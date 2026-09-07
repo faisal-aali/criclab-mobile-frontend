@@ -44,6 +44,14 @@ export const auth = {
 
   me: () => authFetch<{ user: import('./http').AuthUser }>('/auth/me'),
 
+  changePassword: (current_password: string, new_password: string) =>
+    authFetch<{ status: string; sessions_ended: number } & import('./http').TokenBundle>('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ current_password, new_password }),
+    }),
+
+  signOutEverywhere: () => authFetch<{ status: string }>('/auth/logout-all', { method: 'POST' }),
+
   signOut: async () => {
     const stored = await getStoredRefreshToken()
     if (stored) {
