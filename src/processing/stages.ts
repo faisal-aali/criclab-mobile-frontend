@@ -86,6 +86,11 @@ export function isWaitingToStart(status: string | undefined): boolean {
   return status === 'queued' || status === 'claimed'
 }
 
+/** Same statuses as `POST /jobs/{id}/cancel` and `POST /balltrack/jobs/{id}/cancel`. */
+export function canCancelJob(status: string | undefined): boolean {
+  return status === 'queued' || status === 'claimed' || status === 'processing' || status === 'analyzing'
+}
+
 function formatBytes(n: number) {
   if (n < 1024) return `${n} B`
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`

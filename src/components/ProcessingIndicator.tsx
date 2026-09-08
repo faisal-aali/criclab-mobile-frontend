@@ -2,16 +2,18 @@ import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
+import { cancelActiveJob } from '../api/client'
 import { jobHref, useProcessingJobs } from '../processing/ProcessingJobs'
-import { formatEta, formatExpectedAt, isWaitingToStart } from '../processing/stages'
+import { canCancelJob, formatEta, formatExpectedAt, isWaitingToStart } from '../processing/stages'
 import { colors } from '../theme'
 
 const RING = 2 * Math.PI * 10
 
 export function ProcessingIndicator() {
-  const { jobs } = useProcessingJobs()
+  const { jobs, untrackJob } = useProcessingJobs()
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [cancellingId, setCancellingId] = useState<string | null>(null)
 
   if (jobs.length === 0) return null
 
@@ -19,6 +21,19 @@ export function ProcessingIndicator() {
   const pct = Math.max(0, Math.min(100, Math.round(primary.progress || 0)))
   const waiting = isWaitingToStart(primary.status)
   const dash = RING * (1 - (waiting ? 0.04 : pct / 100))
+
+  async function onCancel(job: (typeof jobs)[number]) {
+    if (cancellingId) return
+    setCancellingId(job.id)
+    try {
+      await cancelActiveJob(job)
+      untrackJob(job.id)
+      setCancellingId(null)
+      if (jobs.length <= 1) setOpen(false)
+    } catch {
+      setCancellingId(null)
+    }
+  }
 
   return (
     <>
@@ -146,6 +161,21 @@ export function ProcessingIndicator() {
                       {job.message || 'Working…'}
                       {when ? ` · ${when}` : ''}
                     </Text>
+                    {canCancelJob(job.status) ? (
+                      <Pressable
+                        onPress={() => void onCancel(job)}
+                        disabled={cancellingId === job.id}
+                        style={{ marginTop: 10, alignSelf: 'flex-start', paddingVertical: 4 }}
+                      >
+                        <Text style={{ fontSize: 13, fontWeight: '800', color: colors.ball }}>
+                          {cancellingId === job.id
+                            ? 'Removing…'
+                            : queued
+                              ? 'Remove from queue'
+                              : 'Stop this analysis'}
+                        </Text>
+                      </Pressable>
+                    ) : null}
                   </Pressable>
                 )
               })}

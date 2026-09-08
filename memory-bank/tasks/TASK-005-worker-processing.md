@@ -12,12 +12,12 @@ website API process.
 - `criclab-video-service` claims and measures
 - Web uses signed **Cloudinary** upload (`source_url`), not S3
 - Web header ring polls `GET /jobs/active`
-- Quota: `expected_start_at` while queued; cancel only while `queued`
+- Quota: `expected_start_at` while queued; cancel while `queued|claimed|processing|analyzing`
 
 ## Done in this repo
 
 - `cloudinaryClipUrl` + `source_url` on Action and Ball flight (multipart fallback)
 - `ProcessingJobsProvider` + `ProcessingIndicator` in AppHeader / drawer / analysis headers
 - Upload stays on the tab; optional processing screen; “Keep using CricLab”
-- `expected_start_at` + remove-from-queue
+- `expected_start_at` + cancel (`Remove from queue` / `Stop this analysis`)
 - `cloudinaryPlaybackUrl` for HEVC originals

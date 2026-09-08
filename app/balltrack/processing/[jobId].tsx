@@ -6,7 +6,7 @@ import type { BallTrackJob } from '../../../src/balltrack/types'
 import { ProcessingStages } from '../../../src/components/ProcessingStages'
 import { Screen } from '../../../src/components/Screen'
 import { useProcessingJobs } from '../../../src/processing/ProcessingJobs'
-import { BALL_FLIGHT_STAGES, isWaitingToStart } from '../../../src/processing/stages'
+import { BALL_FLIGHT_STAGES, canCancelJob, isWaitingToStart } from '../../../src/processing/stages'
 import { ProcessingShimmer } from '../../../src/shimmer'
 import { colors } from '../../../src/theme'
 
@@ -65,7 +65,7 @@ export default function BallTrackProcessing() {
       untrackJob(jobId)
       router.replace('/(tabs)/balltrack')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not remove this session from the queue')
+      setError(err instanceof Error ? err.message : 'Could not cancel this analysis')
       setCancelling(false)
     }
   }
@@ -142,14 +142,14 @@ export default function BallTrackProcessing() {
         </Pressable>
       ) : null}
 
-      {waiting ? (
+      {canCancelJob(job?.status) ? (
         <Pressable
           onPress={() => void onCancel()}
           disabled={cancelling}
           style={{ marginTop: 10, paddingVertical: 12, alignItems: 'center' }}
         >
           <Text style={{ color: colors.muted, fontWeight: '700' }}>
-            {cancelling ? 'Removing…' : 'Remove from queue'}
+            {cancelling ? 'Removing…' : waiting ? 'Remove from queue' : 'Stop this analysis'}
           </Text>
         </Pressable>
       ) : null}

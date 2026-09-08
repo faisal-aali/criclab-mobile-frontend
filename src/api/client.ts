@@ -404,6 +404,13 @@ export function cancelJob(jobId: string) {
   return request<{ id: string; status: string }>(`/jobs/${jobId}/cancel`, { method: 'POST' })
 }
 
+export function cancelActiveJob(job: Pick<Job, 'id' | 'kind'>) {
+  if (job.kind === 'ballflight') {
+    return request<{ id: string; status: string }>(`/balltrack/jobs/${job.id}/cancel`, { method: 'POST' })
+  }
+  return cancelJob(job.id)
+}
+
 export function listActiveJobs() {
   return request<{ items: Job[] }>('/jobs/active')
 }

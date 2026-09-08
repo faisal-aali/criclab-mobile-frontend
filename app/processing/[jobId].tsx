@@ -6,7 +6,7 @@ import { ProcessingStages } from '../../src/components/ProcessingStages'
 import { Screen } from '../../src/components/Screen'
 import { useFallbackBack } from '../../src/nav/back'
 import { useProcessingJobs } from '../../src/processing/ProcessingJobs'
-import { ACTION_STAGES, ACTION_TIPS, isWaitingToStart } from '../../src/processing/stages'
+import { ACTION_STAGES, ACTION_TIPS, canCancelJob, isWaitingToStart } from '../../src/processing/stages'
 import { ProcessingShimmer } from '../../src/shimmer'
 import { colors } from '../../src/theme'
 
@@ -72,7 +72,7 @@ export default function ProcessingScreen() {
       untrackJob(jobId)
       router.replace('/')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not remove this clip from the queue')
+      setError(err instanceof Error ? err.message : 'Could not cancel this analysis')
       setCancelling(false)
     }
   }
@@ -164,14 +164,14 @@ export default function ProcessingScreen() {
         <Text style={{ color: colors.lime, fontWeight: '800' }}>Keep using CricLab</Text>
       </Pressable>
 
-      {waiting ? (
+      {canCancelJob(job?.status) ? (
         <Pressable
           onPress={() => void onCancel()}
           disabled={cancelling}
           style={{ marginTop: 10, paddingVertical: 12, alignItems: 'center' }}
         >
           <Text style={{ color: colors.muted, fontWeight: '700' }}>
-            {cancelling ? 'Removing…' : 'Remove from queue'}
+            {cancelling ? 'Removing…' : waiting ? 'Remove from queue' : 'Stop this analysis'}
           </Text>
         </Pressable>
       ) : null}

@@ -127,7 +127,9 @@ All writes go through FastAPI (`src/api/http.ts` + `src/api/client.ts`).
   Content-Type on multipart (boundary must be generated).
 - Prefer Cloudinary playback URLs (`cloudinaryPlaybackUrl` for HEVC `.mov`).
 - Jobs may include `expected_start_at` (queued) and `eta_seconds` (running).
-  Queued clips can be cancelled. Do not invent a start time on the phone.
+  Queued and in-flight clips can be cancelled (`POST /jobs/:id/cancel`,
+  `POST /balltrack/jobs/:id/cancel`). The worker stops at the next stage. Do
+  not invent a start time on the phone.
 - Relative artifact URLs (`/artifacts/...`) must be prefixed with the API base.
 
 Required Action upload fields (same as web):
