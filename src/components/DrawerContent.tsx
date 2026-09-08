@@ -3,6 +3,7 @@ import { type Href, usePathname, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { isProduction } from '../api/config'
 import { notifications } from '../api/notifications'
 import { useAuth } from '../auth/AuthProvider'
 import { colors } from '../theme'
@@ -199,7 +200,9 @@ export function DrawerContent(props: DrawerPanelProps) {
           }}
           style={{ paddingVertical: 12 }}
         >
-          <Text style={{ fontWeight: '700', color: colors.chalk }}>Account</Text>
+          <Text style={{ fontWeight: '700', color: colors.chalk }}>
+            {isProduction() ? 'Account' : 'Account & lab URL'}
+          </Text>
         </Pressable>
         <Pressable
           onPress={() =>

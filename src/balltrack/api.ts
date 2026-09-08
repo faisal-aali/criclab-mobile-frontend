@@ -1,10 +1,37 @@
 import { cloudinaryClipUrl, type ClipUploadProgress, type PickedVideo } from '../api/client'
 import { getApiBase } from '../api/config'
-import { authFetch } from '../api/http'
+import { authFetch, ensureAccessToken } from '../api/http'
+import { nativeMultipartUpload } from '../api/nativeUpload'
 import type { BallTrackDelivery, BallTrackJob, BallTrackSession, Box, Calibration } from './types'
 
 function request<T>(path: string, init?: RequestInit): Promise<T> {
   return authFetch<T>(path, init)
+}
+
+function formFields(fields: Record<string, string>) {
+  return new URLSearchParams(fields).toString()
+}
+
+async function labFilePost<T>(
+  path: string,
+  fileUri: string,
+  mimeType: string,
+  parameters: Record<string, string>,
+): Promise<T> {
+  const base = await getApiBase()
+  const token = await ensureAccessToken()
+  const body = await nativeMultipartUpload({
+    url: `${base}${path}`,
+    fileUri,
+    fieldName: 'file',
+    mimeType,
+    parameters,
+    headers: {
+      Accept: 'application/json',
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+    },
+  })
+  return JSON.parse(body) as T
 }
 
 export async function balltrackAssetUrl(path?: string | null) {
@@ -24,27 +51,29 @@ export async function uploadSession(
   },
   onProgress?: (p: ClipUploadProgress) => void,
 ) {
-  const form = new FormData()
   const video: PickedVideo = { uri: input.uri, name: input.name || 'session.mp4', mimeType: input.mimeType }
-  const remote = await cloudinaryClipUrl(video, onProgress)
-  if (remote) {
-    form.append('source_url', remote)
-    form.append('original_name', video.name)
-  } else {
-    form.append('file', {
-      uri: video.uri,
-      name: video.name,
-      type: video.mimeType || 'video/mp4',
-    } as unknown as Blob)
+  const fields = {
+    calibration: JSON.stringify(input.calibration),
+    title: input.title || 'Ball Track session',
   }
-  form.append('calibration', JSON.stringify(input.calibration))
-  form.append('title', input.title || 'Ball Track session')
+  const remote = await cloudinaryClipUrl(video, onProgress)
   onProgress?.({ phase: 'handoff', loaded: 1, total: 1 })
-  return request<{ session_id: string; job_id: string; status: string }>('/balltrack/sessions', {
-    method: 'POST',
-    body: form,
-    headers: { Accept: 'application/json' },
-  })
+  if (remote) {
+    return request<{ session_id: string; job_id: string; status: string }>('/balltrack/sessions', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'content-type': 'application/x-www-form-urlencoded',
+      },
+      body: formFields({ ...fields, source_url: remote, original_name: video.name }),
+    })
+  }
+  return labFilePost<{ session_id: string; job_id: string; status: string }>(
+    '/balltrack/sessions',
+    video.uri,
+    video.mimeType || 'video/mp4',
+    { ...fields, original_name: video.name },
+  )
 }
 
 export function getBalltrackJob(jobId: string) {
@@ -68,22 +97,13 @@ export function getBalltrackDelivery(id: string) {
 }
 
 export function detectStumps(input: { uri: string; bowler: Box; batter: Box }) {
-  const form = new FormData()
-  form.append('file', {
-    uri: input.uri,
-    name: 'frame.jpg',
-    type: 'image/jpeg',
-  } as unknown as Blob)
-  form.append('hints', JSON.stringify({ bowler: input.bowler, batter: input.batter }))
-  return request<{
+  return labFilePost<{
     bowler: Box
     batter: Box
     found: boolean
     pitch_length_m?: number
     confidence?: { bowler: number; batter: number }
-  }>('/balltrack/detect-stumps', {
-    method: 'POST',
-    body: form,
-    headers: { Accept: 'application/json' },
+  }>('/balltrack/detect-stumps', input.uri, 'image/jpeg', {
+    hints: JSON.stringify({ bowler: input.bowler, batter: input.batter }),
   })
 }

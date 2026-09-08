@@ -2,6 +2,8 @@ import { useRouter } from 'expo-router'
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, Pressable, Text, TextInput, View } from 'react-native'
 import { auth } from '../../../src/api/auth'
+import { getHealth } from '../../../src/api/client'
+import { defaultBase, getApiBase, isProduction, setApiBase, suggestedLanHint } from '../../../src/api/config'
 import { useAuth } from '../../../src/auth/AuthProvider'
 import { AppHeader } from '../../../src/components/AppHeader'
 import { ChoiceRow, FieldLabel, fieldInputStyle } from '../../../src/components/ChoiceRow'
@@ -22,13 +24,19 @@ export default function ProfileScreen() {
   const { user, signOut, adopt } = useAuth()
   const [profile, setProfile] = useState<SavedProfile>(emptyProfile)
   const [saving, setSaving] = useState(false)
+  const [apiBase, setApiBaseField] = useState('')
+  const [health, setHealth] = useState<string | null>(null)
+  const [pinging, setPinging] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [pwBusy, setPwBusy] = useState(false)
 
+  const showLabUrl = !isProduction()
+
   useEffect(() => {
     loadProfile().then(setProfile)
-  }, [])
+    if (showLabUrl) getApiBase().then(setApiBaseField)
+  }, [showLabUrl])
 
   const heightM = useMemo(() => heightMeters(profile), [profile])
   const blockers = profileBlockers(profile)
@@ -51,6 +59,12 @@ export default function ProfileScreen() {
     } finally {
       setSaving(false)
     }
+  }
+
+  async function onSaveLabUrl() {
+    const next = await setApiBase(apiBase || defaultBase())
+    setApiBaseField(next)
+    Alert.alert('Saved', 'The phone will call this lab URL on the next request.')
   }
 
   async function onChangePassword() {
@@ -88,6 +102,20 @@ export default function ProfileScreen() {
         },
       },
     ])
+  }
+
+  async function onPing() {
+    setPinging(true)
+    setHealth(null)
+    try {
+      await setApiBase(apiBase || defaultBase())
+      const r = await getHealth()
+      setHealth(r.ok ? `Lab is up${r.name ? ` · ${r.name}` : ''}` : 'Lab answered but is not ok')
+    } catch (err) {
+      setHealth(err instanceof Error ? err.message : 'Could not reach the lab')
+    } finally {
+      setPinging(false)
+    }
   }
 
   return (
@@ -185,6 +213,63 @@ export default function ProfileScreen() {
           <Text style={{ color: colors.chalk, fontWeight: '800' }}>{pwBusy ? 'Updating…' : 'Update password'}</Text>
         </Pressable>
       </SectionCard>
+
+      {showLabUrl ? (
+        <SectionCard>
+          <Text style={{ fontWeight: '800', color: colors.chalk }}>Lab URL</Text>
+          <Text style={{ marginTop: 6, fontSize: 12, color: colors.muted, lineHeight: 18 }}>{suggestedLanHint()}</Text>
+          <FieldLabel>API base</FieldLabel>
+          <TextInput
+            style={fieldInputStyle}
+            value={apiBase}
+            onChangeText={setApiBaseField}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+            placeholder="http://192.168.1.15:8000"
+            placeholderTextColor={colors.muted}
+          />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 }}>
+            <Pressable
+              onPress={() => void onSaveLabUrl()}
+              style={{
+                flex: 1,
+                minWidth: 120,
+                backgroundColor: colors.lime,
+                borderRadius: 12,
+                paddingVertical: 12,
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ color: colors.onLime, fontWeight: '800' }}>Save URL</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => void onPing()}
+              disabled={pinging}
+              style={{
+                flex: 1,
+                minWidth: 120,
+                borderWidth: 1,
+                borderColor: colors.line,
+                backgroundColor: colors.charcoal,
+                borderRadius: 12,
+                paddingVertical: 12,
+                alignItems: 'center',
+                opacity: pinging ? 0.6 : 1,
+              }}
+            >
+              <Text style={{ color: colors.chalk, fontWeight: '800' }}>{pinging ? 'Pinging…' : 'Ping lab'}</Text>
+            </Pressable>
+          </View>
+          {health ? (
+            <Text
+              style={{ marginTop: 10, fontSize: 12, color: health.startsWith('Lab is up') ? colors.emerald : colors.ball }}
+            >
+              {health}
+            </Text>
+          ) : null}
+        </SectionCard>
+      ) : null}
 
       <View
         style={{

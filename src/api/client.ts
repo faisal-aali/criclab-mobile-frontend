@@ -1,5 +1,6 @@
 import { getApiBase } from './config'
-import { authFetch, publicFetch } from './http'
+import { authFetch, ensureAccessToken, publicFetch } from './http'
+import { nativeMultipartUpload } from './nativeUpload'
 
 function request<T>(path: string, init?: RequestInit): Promise<T> {
   return authFetch<T>(path, init)
@@ -253,47 +254,48 @@ type CloudinaryUploadParams = {
   eager_async?: string
 }
 
-function rnFilePart(video: PickedVideo) {
-  const name = video.name || 'delivery.mp4'
-  return {
-    uri: video.uri,
-    name,
-    type: video.mimeType || mimeFromName(name),
-  } as unknown as Blob
+function mimeFromName(name: string) {
+  const n = name.toLowerCase()
+  if (n.endsWith('.mov')) return 'video/quicktime'
+  if (n.endsWith('.webm')) return 'video/webm'
+  if (n.endsWith('.avi')) return 'video/x-msvideo'
+  if (n.endsWith('.mkv')) return 'video/x-matroska'
+  return 'video/mp4'
+}
+
+function videoMime(video: PickedVideo) {
+  return video.mimeType || mimeFromName(video.name || 'delivery.mp4')
+}
+
+async function labMultipart<T>(
+  path: string,
+  video: PickedVideo,
+  parameters: Record<string, string>,
+): Promise<T> {
+  const base = await getApiBase()
+  const token = await ensureAccessToken()
+  const body = await nativeMultipartUpload({
+    url: `${base}${path}`,
+    fileUri: video.uri,
+    fieldName: 'file',
+    mimeType: videoMime(video),
+    parameters,
+    headers: {
+      Accept: 'application/json',
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+    },
+  })
+  return JSON.parse(body) as T
+}
+
+function formFields(fields: Record<string, string>) {
+  return new URLSearchParams(fields).toString()
 }
 
 export type ClipUploadProgress = {
   phase: 'cloudinary' | 'handoff'
   loaded: number
   total: number
-}
-
-async function postForm(
-  url: string,
-  body: FormData,
-  onProgress?: (loaded: number, total: number) => void,
-): Promise<string> {
-  if (typeof XMLHttpRequest !== 'undefined') {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest()
-      xhr.open('POST', url)
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) onProgress?.(event.loaded, event.total)
-      }
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(xhr.responseText)
-          return
-        }
-        reject(new Error('Could not upload the video. Try a shorter clip.'))
-      }
-      xhr.onerror = () => reject(new Error('Could not upload the video. Try a shorter clip.'))
-      xhr.send(body)
-    })
-  }
-  const res = await fetch(url, { method: 'POST', body })
-  if (!res.ok) throw new Error('Could not upload the video. Try a shorter clip.')
-  return res.text()
 }
 
 /**
@@ -320,33 +322,29 @@ export async function cloudinaryClipUrl(
   ) {
     return null
   }
-  const body = new FormData()
-  body.append('file', rnFilePart(video))
-  body.append('api_key', params.api_key)
-  body.append('timestamp', String(params.timestamp))
-  body.append('signature', params.signature)
-  body.append('folder', params.folder || 'criclab/incoming')
-  if (params.eager) body.append('eager', params.eager)
-  if (params.eager_async) body.append('eager_async', params.eager_async)
-  const raw = await postForm(
-    `https://api.cloudinary.com/v1_1/${params.cloud_name}/video/upload`,
-    body,
-    (loaded, total) => onProgress?.({ phase: 'cloudinary', loaded, total }),
-  )
-  const json = JSON.parse(raw) as { secure_url?: string }
-  if (!json.secure_url) {
-    throw new Error('Could not upload the video. Try a shorter clip.')
+  onProgress?.({ phase: 'cloudinary', loaded: 0, total: 1 })
+  try {
+    const raw = await nativeMultipartUpload({
+      url: `https://api.cloudinary.com/v1_1/${params.cloud_name}/video/upload`,
+      fileUri: video.uri,
+      fieldName: 'file',
+      mimeType: videoMime(video),
+      parameters: {
+        api_key: params.api_key,
+        timestamp: String(params.timestamp),
+        signature: params.signature,
+        folder: params.folder || 'criclab/incoming',
+        ...(params.eager ? { eager: params.eager } : {}),
+        ...(params.eager_async ? { eager_async: params.eager_async } : {}),
+      },
+    })
+    const json = JSON.parse(raw) as { secure_url?: string }
+    if (!json.secure_url) return null
+    onProgress?.({ phase: 'cloudinary', loaded: 1, total: 1 })
+    return json.secure_url
+  } catch {
+    return null
   }
-  return json.secure_url
-}
-
-function mimeFromName(name: string) {
-  const n = name.toLowerCase()
-  if (n.endsWith('.mov')) return 'video/quicktime'
-  if (n.endsWith('.webm')) return 'video/webm'
-  if (n.endsWith('.avi')) return 'video/x-msvideo'
-  if (n.endsWith('.mkv')) return 'video/x-matroska'
-  return 'video/mp4'
 }
 
 export async function uploadVideo(
@@ -365,32 +363,36 @@ export async function uploadVideo(
   },
   onProgress?: (p: ClipUploadProgress) => void,
 ) {
-  const form = new FormData()
   const name = input.video.name || 'delivery.mp4'
-  const remote = await cloudinaryClipUrl(input.video, onProgress)
-  if (remote) {
-    form.append('source_url', remote)
-    form.append('original_name', name)
-  } else {
-    form.append('file', rnFilePart(input.video))
+  const fields: Record<string, string> = {
+    player_name: input.playerName,
+    first_name: input.firstName,
+    last_name: input.lastName,
+    date_of_birth: input.dateOfBirth,
+    height_ft: String(input.heightFt),
+    height_in: String(input.heightIn),
+    weight_lbs: String(input.weightLbs),
+    bowling_arm: input.bowlingArm,
+    bowling_style: input.bowlingStyle,
   }
-  form.append('player_name', input.playerName)
-  form.append('first_name', input.firstName)
-  form.append('last_name', input.lastName)
-  form.append('date_of_birth', input.dateOfBirth)
-  form.append('height_ft', String(input.heightFt))
-  form.append('height_in', String(input.heightIn))
-  form.append('weight_lbs', String(input.weightLbs))
-  form.append('bowling_arm', input.bowlingArm)
-  form.append('bowling_style', input.bowlingStyle)
   if (input.metersPerPixel != null && !Number.isNaN(input.metersPerPixel)) {
-    form.append('meters_per_pixel', String(input.metersPerPixel))
+    fields.meters_per_pixel = String(input.metersPerPixel)
   }
+  const remote = await cloudinaryClipUrl(input.video, onProgress)
   onProgress?.({ phase: 'handoff', loaded: 1, total: 1 })
-  return request<{ video_id: string; job_id: string; status: string }>('/videos', {
-    method: 'POST',
-    body: form,
-    headers: { Accept: 'application/json' },
+  if (remote) {
+    return request<{ video_id: string; job_id: string; status: string }>('/videos', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'content-type': 'application/x-www-form-urlencoded',
+      },
+      body: formFields({ ...fields, source_url: remote, original_name: name }),
+    })
+  }
+  return labMultipart<{ video_id: string; job_id: string; status: string }>('/videos', input.video, {
+    ...fields,
+    original_name: name,
   })
 }
 

@@ -67,8 +67,11 @@ export async function getStoredRefreshToken(): Promise<string | null> {
   return AsyncStorage.getItem(REFRESH_KEY)
 }
 
-export function hasMemorySession(): boolean {
-  return Boolean(accessToken)
+export async function ensureAccessToken(): Promise<string | null> {
+  if (!accessToken || Date.now() >= accessExpiry) {
+    await refreshSession()
+  }
+  return accessToken
 }
 
 function isFormBody(body: unknown): boolean {
@@ -119,6 +122,12 @@ async function labFetch(path: string, init?: RequestInit, token?: string | null)
     return await fetch(`${base}${path}`, { ...init, headers })
   } catch (err) {
     const reason = err instanceof Error ? err.message : 'Network request failed'
+    if (/FormDataPart/i.test(reason)) {
+      throw new ApiError(
+        'This build cannot attach a video with fetch FormData. The app will use the native uploader.',
+        0,
+      )
+    }
     throw new ApiError(
       `${reason} (${base}). On a phone use your Mac LAN IP and start FastAPI with --host 0.0.0.0`,
       0,
