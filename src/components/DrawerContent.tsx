@@ -1,8 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
-import { DrawerContentScrollView, type DrawerContentComponentProps } from '@react-navigation/drawer'
 import { type Href, usePathname, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Alert, Pressable, Text, View } from 'react-native'
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { notifications } from '../api/notifications'
 import { support } from '../api/support'
@@ -56,7 +55,11 @@ const ITEMS: Item[] = [
   },
 ]
 
-export function DrawerContent(props: DrawerContentComponentProps) {
+type DrawerPanelProps = {
+  navigation: { closeDrawer: () => void }
+}
+
+export function DrawerContent(props: DrawerPanelProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { user, signOut } = useAuth()
@@ -82,8 +85,7 @@ export function DrawerContent(props: DrawerContentComponentProps) {
   const insets = useSafeAreaInsets()
 
   return (
-    <DrawerContentScrollView
-      {...props}
+    <ScrollView
       contentInsetAdjustmentBehavior="never"
       contentContainerStyle={{
         flexGrow: 1,
@@ -203,6 +205,6 @@ export function DrawerContent(props: DrawerContentComponentProps) {
           <Text style={{ fontWeight: '800', color: colors.ball }}>Sign out</Text>
         </Pressable>
       </View>
-    </DrawerContentScrollView>
+    </ScrollView>
   )
 }

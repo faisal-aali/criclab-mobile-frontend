@@ -1,5 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
-import { DrawerActions } from '@react-navigation/native'
 import { useNavigation } from 'expo-router'
 import { Pressable, View } from 'react-native'
 import { colors } from '../theme'
@@ -18,7 +17,7 @@ export function AppHeader() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Open menu"
-          onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+          onPress={() => navigation.dispatch({ type: 'OPEN_DRAWER' })}
           hitSlop={8}
           style={{
             width: 44,

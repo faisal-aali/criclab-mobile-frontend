@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useCameraPermissions } from 'expo-camera'
-import { useIsFocused } from '@react-navigation/native'
 import { useRouter } from 'expo-router'
+import { useIsFocused } from '../../src/navigation/useIsFocused'
 import { useRef, useState } from 'react'
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
