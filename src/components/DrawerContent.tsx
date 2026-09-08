@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { notifications } from '../api/notifications'
-import { support } from '../api/support'
 import { useAuth } from '../auth/AuthProvider'
 import { colors } from '../theme'
 import { LogoMark } from './Logo'
@@ -15,13 +14,15 @@ type Item = {
   hint: string
   icon: keyof typeof Ionicons.glyphMap
   match: (path: string) => boolean
+  /** Matches web `nav.workspace.json` `hidden: true` / TODO: For Future. */
+  hidden?: boolean
 }
 
 const ITEMS: Item[] = [
   {
     href: '/',
     label: 'Lab',
-    hint: 'Action, flight, history',
+    hint: 'Action, history, train',
     icon: 'home-outline',
     match: (p) => p === '/' || p.startsWith('/balltrack') || p === '/history' || p === '/train' || p === '/profile',
   },
@@ -33,25 +34,38 @@ const ITEMS: Item[] = [
     match: (p) => p.startsWith('/leaderboard'),
   },
   {
-    href: '/tickets',
-    label: 'Tickets',
-    hint: 'Ask support',
-    icon: 'chatbubbles-outline',
-    match: (p) => p.startsWith('/tickets'),
-  },
-  {
     href: '/notifications',
     label: 'Notifications',
     hint: 'Replies and bookings',
     icon: 'notifications-outline',
     match: (p) => p.startsWith('/notifications'),
   },
+  // TODO: For Future — same as web nav.workspace.json (hidden: true)
+  {
+    href: '/balltrack',
+    label: 'Ball flight',
+    hint: 'Speed, line & length',
+    icon: 'locate-outline',
+    match: (p) => p.startsWith('/balltrack'),
+    hidden: true,
+  },
+  // TODO: For Future — same as web Support
+  {
+    href: '/tickets',
+    label: 'Tickets',
+    hint: 'Ask support',
+    icon: 'chatbubbles-outline',
+    match: (p) => p.startsWith('/tickets'),
+    hidden: true,
+  },
+  // TODO: For Future — same as web Coaching
   {
     href: '/coaching',
     label: 'Coaching',
     hint: 'Book a session',
     icon: 'calendar-outline',
     match: (p) => p.startsWith('/coaching'),
+    hidden: true,
   },
 ]
 
@@ -70,11 +84,12 @@ export function DrawerContent(props: DrawerPanelProps) {
     let alive = true
     Promise.all([
       notifications.unreadCount().catch(() => ({ unread: 0 })),
-      support.list({ liveOnly: true }).catch(() => ({ unread: 0, items: [] })),
-    ]).then(([notes, tickets]) => {
+      // TODO: For Future — tickets unread while Support is hidden
+      // support.list({ liveOnly: true }).catch(() => ({ unread: 0, items: [] })),
+    ]).then(([notes]) => {
       if (!alive) return
       setUnreadNotes(notes.unread)
-      setUnreadTickets(tickets.unread ?? 0)
+      setUnreadTickets(0)
     })
     return () => {
       alive = false
@@ -124,7 +139,7 @@ export function DrawerContent(props: DrawerPanelProps) {
       </View>
 
       <View style={{ paddingHorizontal: 10, paddingTop: 14, gap: 4 }}>
-        {ITEMS.map((item) => {
+        {ITEMS.filter((item) => !item.hidden).map((item) => {
           const active = item.match(pathname)
           const badge =
             item.href === '/notifications' ? unreadNotes : item.href === '/tickets' ? unreadTickets : 0
@@ -184,7 +199,7 @@ export function DrawerContent(props: DrawerPanelProps) {
           }}
           style={{ paddingVertical: 12 }}
         >
-          <Text style={{ fontWeight: '700', color: colors.chalk }}>Account & lab URL</Text>
+          <Text style={{ fontWeight: '700', color: colors.chalk }}>Account</Text>
         </Pressable>
         <Pressable
           onPress={() =>

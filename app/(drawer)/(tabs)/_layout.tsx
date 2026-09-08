@@ -32,9 +32,12 @@ export default function TabsLayout() {
           ),
         }}
       />
+      {/* TODO: For Future — Ball flight tab. Matches web nav.workspace.json hidden: true.
+          Screen stays registered; href: null drops it from the tab bar. Restore by removing href: null. */}
       <Tabs.Screen
         name="balltrack"
         options={{
+          href: null,
           title: 'Flight',
           tabBarIcon: ({ color, focused, size }) => (
             <Ionicons name={focused ? 'locate' : 'locate-outline'} size={size} color={color} />

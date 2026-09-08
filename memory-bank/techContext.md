@@ -42,8 +42,9 @@ Start the API with `./run.sh` from the backend folder (`--host 0.0.0.0`). Start
 the worker from `criclab-video-service` or jobs stay `queued`. Uploads fail if
 the API is down. Analysis does not finish if the worker is down.
 
-The Vite web app uses a `/api` proxy. **This app does not.** It calls port 8000
-directly.
+The Vite web app uses a `/api` proxy. **This app does not.** It calls the lab
+directly. `APP_ENV=development` uses LAN `:8000`; `APP_ENV=production` uses
+`EXPO_PUBLIC_API_BASE_PROD`.
 
 ## Data flow
 

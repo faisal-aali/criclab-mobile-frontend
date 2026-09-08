@@ -4,6 +4,30 @@ import { Platform } from 'react-native'
 
 const KEY = 'criclab.apiBase'
 
+export type AppEnv = 'development' | 'production'
+
+type Extra = {
+  apiBase?: string | null
+  appEnv?: string
+}
+
+function extra(): Extra {
+  return (Constants.expoConfig?.extra as Extra | undefined) ?? {}
+}
+
+function strip(raw?: string | null) {
+  return raw?.trim().replace(/\/$/, '') || ''
+}
+
+export function appEnv(): AppEnv {
+  const raw = (extra().appEnv || process.env.EXPO_PUBLIC_APP_ENV || process.env.APP_ENV || 'development').toLowerCase()
+  return raw === 'production' || raw === 'prod' ? 'production' : 'development'
+}
+
+export function isProduction() {
+  return appEnv() === 'production'
+}
+
 function hostFrom(raw?: string | null): string | null {
   if (!raw) return null
   const cleaned = raw.trim().replace(/^exps?:\/\//, 'http://')
@@ -46,39 +70,52 @@ function isPrivateIpv4(host: string | null) {
 }
 
 function extraBase() {
-  const extra = (Constants.expoConfig?.extra as { apiBase?: string } | undefined)?.apiBase
-  return extra?.trim().replace(/\/$/, '') || null
+  return strip(extra().apiBase) || null
 }
 
-export function defaultBase() {
-  const env = process.env.EXPO_PUBLIC_API_BASE?.replace(/\/$/, '')
-  const extra = extraBase()
+function productionBase() {
+  return (
+    strip(process.env.EXPO_PUBLIC_API_BASE_PROD) ||
+    extraBase() ||
+    strip(process.env.EXPO_PUBLIC_API_BASE) ||
+    ''
+  )
+}
+
+function developmentBase() {
+  const env = strip(process.env.EXPO_PUBLIC_API_BASE_DEV) || strip(process.env.EXPO_PUBLIC_API_BASE)
+  const extraUrl = extraBase()
   const lan = metroLanHost()
 
-  // Expo Go on a real phone: the debugger host is this Mac. Prefer it over a
-  // stale .env IP from last week's DHCP lease.
+  // Expo Go / dev client on a real phone: the debugger host is this Mac.
   if (lan) return `http://${lan}:8000`
   if (env && !isLoopback(env)) return env
-  if (extra && !isLoopback(extra)) return extra
+  if (extraUrl && !isLoopback(extraUrl)) return extraUrl
   if (env) return env
   if (Platform.OS === 'android') return 'http://10.0.2.2:8000'
   return 'http://127.0.0.1:8000'
 }
 
+export function defaultBase() {
+  if (isProduction()) return productionBase()
+  return developmentBase()
+}
+
 export async function getApiBase() {
   const fallback = defaultBase()
-  const saved = (await AsyncStorage.getItem(KEY))?.trim().replace(/\/$/, '')
+  if (isProduction()) return fallback
+
+  const saved = strip(await AsyncStorage.getItem(KEY))
   if (!saved) return fallback
   if (isLoopback(saved) && !isLoopback(fallback)) return fallback
   const lan = metroLanHost()
   const savedHost = hostOf(saved)
-  // DHCP moved: stored 192.168.1.26, Expo now sees 192.168.1.15.
   if (lan && savedHost && savedHost !== lan && isPrivateIpv4(savedHost)) return fallback
   return saved
 }
 
 export async function setApiBase(url: string) {
-  const clean = url.trim().replace(/\/$/, '')
+  const clean = strip(url)
   await AsyncStorage.setItem(KEY, clean)
   return clean
 }

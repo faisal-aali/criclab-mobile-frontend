@@ -116,7 +116,7 @@ export default function AnalyzeScreen() {
       <PageHero
         kicker="ACTION · SIDE-ON"
         title="Analyze every delivery"
-        lead="Film a side-on clip. Your saved profile scales the delivery into metres and km/h. Ball flight is a different tab — do not mix those numbers with this report."
+        lead="Film a side-on clip. Your saved profile scales the delivery into metres and km/h. Ball flight is a different pipeline — do not mix those numbers with this report."
       />
 
       <Pressable

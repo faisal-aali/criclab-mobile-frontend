@@ -34,9 +34,16 @@ export default function DrawerLayout() {
     >
       <Drawer.Screen name="(tabs)" options={{ headerShown: false, drawerLabel: 'Lab', title: 'CricLab' }} />
       <Drawer.Screen name="leaderboard" options={{ title: 'Leaderboard', drawerLabel: 'Leaderboard' }} />
-      <Drawer.Screen name="tickets" options={{ title: 'Tickets', drawerLabel: 'Tickets' }} />
       <Drawer.Screen name="notifications" options={{ title: 'Notifications', drawerLabel: 'Notifications' }} />
-      <Drawer.Screen name="coaching" options={{ title: 'Coaching', drawerLabel: 'Coaching' }} />
+      {/* TODO: For Future — Tickets / Coaching stay registered, hidden from chrome (web Support + Coaching). */}
+      <Drawer.Screen
+        name="tickets"
+        options={{ title: 'Tickets', drawerLabel: 'Tickets', drawerItemStyle: { display: 'none' } }}
+      />
+      <Drawer.Screen
+        name="coaching"
+        options={{ title: 'Coaching', drawerLabel: 'Coaching', drawerItemStyle: { display: 'none' } }}
+      />
     </Drawer>
   )
 }

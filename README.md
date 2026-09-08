@@ -32,6 +32,13 @@ Then open in Expo Go (iPhone/Android) or a simulator.
 
 ## Point it at the backend
 
+Copy `.env.example` to `.env`. `APP_ENV` chooses the lab:
+
+| `APP_ENV` | API | How to run |
+|---|---|---|
+| `development` (default) | `EXPO_PUBLIC_API_BASE_DEV` or the Metro LAN IP `:8000` | `npm start` |
+| `production` | `EXPO_PUBLIC_API_BASE_PROD` | `npm run start:prod` or EAS `preview` / `production` |
+
 1. Start FastAPI so a phone can reach it:
 
 ```bash
@@ -39,21 +46,11 @@ cd ~/Desktop/Cric-Lab/criclab-web-backend
 ./run.sh
 ```
 
-2. In **CricLab → More**, set the API base URL:
+2. For a physical phone, set `EXPO_PUBLIC_API_BASE_DEV=http://YOUR-MAC-LAN-IP:8000` (`ipconfig getifaddr en0`). Same Wi-Fi as the Mac.
 
-| Where you run the app | URL |
-|---|---|
-| iOS Simulator | `http://127.0.0.1:8000` |
-| Android emulator | `http://10.0.2.2:8000` |
-| Physical phone | `http://YOUR-MAC-LAN-IP:8000` |
+3. Create an account (or sign in), confirm email, then analyze.
 
-Find the Mac IP with `ipconfig getifaddr en0`. Phone and Mac must be on the same Wi-Fi.
-
-3. Tap **Test**. You should see “Connected to CricLab API”.
-
-4. Create an account (or sign in), confirm email, then analyze.
-
-Optional: create `.env` with `EXPO_PUBLIC_API_BASE=http://192.168.x.x:8000` (restart Expo after changing it).
+Restart Expo after changing `.env` (`npx expo start -c`). Set `EXPO_PUBLIC_API_BASE_PROD` before an EAS store build.
 
 ## Film
 

@@ -41,7 +41,7 @@ export default function HistoryScreen() {
       <AppHeader />
       <PageHero
         title="History"
-        lead="Your Action deliveries. Ball flight sessions live on the Flight tab — the two must not mix numbers."
+        lead="Your Action deliveries. Ball flight is a separate pipeline — do not mix those numbers here."
       />
       {error ? <Text style={{ marginTop: 12, color: colors.ball }}>{error}</Text> : null}
 

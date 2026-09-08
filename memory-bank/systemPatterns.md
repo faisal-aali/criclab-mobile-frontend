@@ -117,8 +117,10 @@ All writes go through FastAPI (`src/api/http.ts` + `src/api/client.ts`).
 
 ## API client
 
-- Base URL from Profile / `EXPO_PUBLIC_API_BASE` / platform default
-  (`http://127.0.0.1:8000` iOS sim, `http://10.0.2.2:8000` Android emulator).
+- Base URL from `APP_ENV` in `.env`: **development** uses LAN / Metro host /
+  `EXPO_PUBLIC_API_BASE_DEV`; **production** uses `EXPO_PUBLIC_API_BASE_PROD`
+  only (no LAN override, no saved AsyncStorage URL).
+  Dev fallbacks: `http://127.0.0.1:8000` iOS sim, `http://10.0.2.2:8000` Android emulator.
 - Hit the lab **directly** (no `/api` Vite proxy). Port 8000.
 - Upload: signed Cloudinary `source_url` when `/videos/upload-params` is
   configured; otherwise RN file `{ uri, name, type }` multipart. Do not set

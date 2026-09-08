@@ -7,7 +7,7 @@ alwaysApply: true
 
 - Auth required (signup, OTP, login, refresh). Access token in memory; refresh in AsyncStorage.
 - Two modes: Action (side-on) and Ball flight (behind bowler). Never mix their numbers.
-- API: hit port 8000 directly (no `/api` proxy). Bearer on `/videos`, `/jobs`, `/deliveries`, `/balltrack`, `/leaderboard`, `/coaching/drills`.
+- API: hit the lab directly (no `/api` proxy). `APP_ENV=development` → LAN :8000; `APP_ENV=production` → `EXPO_PUBLIC_API_BASE_PROD`. Bearer on `/videos`, `/jobs`, `/deliveries`, `/balltrack`, `/leaderboard`, `/coaching/drills`.
 - Ingest: Cloudinary `source_url` when the lab is configured; multipart `file` only as fallback. Processing runs in `criclab-video-service`, not on the phone. Poll `GET /jobs/active`; never block the UI on a job.
 - Never compute km/h, stride, or scores on device. Never use an LLM to measure frames.
 - `metricReady`: hide values unless status is `ok`. Front-on → no fake speed.
