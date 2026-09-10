@@ -15,7 +15,7 @@ auth required, Expo client vs Python pipeline).
 
 ## Stack
 
-- Expo SDK 54 + React Native
+- Expo SDK 57 + React Native
 - Expo Router (auth + Action / Flight / History / Train / More)
 - Same API as the web workspace, called **directly** on port 8000 (no `/api` proxy)
 - Bearer token on analysis calls; refresh token in AsyncStorage

@@ -110,7 +110,7 @@ export default function ProfileScreen() {
     try {
       await setApiBase(apiBase || defaultBase())
       const r = await getHealth()
-      setHealth(r.ok ? `Lab is up${r.name ? ` · ${r.name}` : ''}` : 'Lab answered but is not ok')
+      setHealth(r.ok ? `Lab is up${r.service ? ` · ${r.service}` : ''}` : 'Lab answered but is not ok')
     } catch (err) {
       setHealth(err instanceof Error ? err.message : 'Could not reach the lab')
     } finally {
