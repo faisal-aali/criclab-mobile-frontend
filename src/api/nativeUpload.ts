@@ -31,6 +31,23 @@ function messageFromBody(body: string, status: number): string {
   return status ? `Upload failed (${status})` : 'Upload failed'
 }
 
+/** PUT raw file bytes to a presigned S3 URL. Only the signed headers are sent. */
+export async function nativeBinaryPut(opts: {
+  url: string
+  fileUri: string
+  headers?: Record<string, string>
+}): Promise<void> {
+  const result = await FileSystem.uploadAsync(opts.url, localFileUri(opts.fileUri), {
+    httpMethod: 'PUT',
+    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+    headers: opts.headers,
+    sessionType: FileSystem.FileSystemSessionType.FOREGROUND,
+  })
+  if (result.status < 200 || result.status >= 300) {
+    throw new ApiError('Could not upload the video. Try a shorter clip.', result.status)
+  }
+}
+
 export async function nativeMultipartUpload(opts: {
   url: string
   fileUri: string

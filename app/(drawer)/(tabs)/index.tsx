@@ -74,7 +74,7 @@ export default function AnalyzeScreen() {
       return
     }
     setBusy(true)
-    setUploadProgress({ phase: 'cloudinary', loaded: 0, total: 1 })
+    setUploadProgress({ phase: 'upload', loaded: 0, total: 1 })
     try {
       const res = await uploadVideo(
         {

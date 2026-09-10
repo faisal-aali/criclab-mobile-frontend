@@ -16,7 +16,7 @@ export function ClipUploadOverlay({
   label?: string
 }) {
   if (!progress) return null
-  const cloud = progress.phase === 'cloudinary'
+  const cloud = progress.phase === 'upload'
   const pct = cloud && progress.total > 0 ? Math.round((progress.loaded / progress.total) * 100) : null
   return (
     <Modal visible transparent animationType="fade">

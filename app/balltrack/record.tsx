@@ -84,7 +84,7 @@ export default function BallTrackRecord() {
       const clip = await cameraRef.current?.record({ maxDuration: 180 })
       if (!clip?.uri) return
       setBusy(true)
-      setUploadProgress({ phase: 'cloudinary', loaded: 0, total: 1 })
+      setUploadProgress({ phase: 'upload', loaded: 0, total: 1 })
       const res = await uploadSession(
         {
           uri: clip.uri,
@@ -100,7 +100,7 @@ export default function BallTrackRecord() {
         'Ball flight runs in the background. Watch the lime ring in the header.',
         [
           { text: 'Watch progress', onPress: () => router.replace(`/balltrack/processing/${res.job_id}`) },
-          { text: 'OK', onPress: () => router.replace('/(tabs)/balltrack') },
+          { text: 'OK', onPress: () => router.replace('/balltrack') },
         ],
       )
     } catch (err) {
@@ -197,7 +197,7 @@ export default function BallTrackRecord() {
 const styles = StyleSheet.create({
   fill: { flex: 1, backgroundColor: '#000' },
   recordingFrame: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderWidth: 4,
     borderColor: '#E11D2A',
   },

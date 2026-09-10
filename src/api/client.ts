@@ -1,6 +1,6 @@
 import { getApiBase } from './config'
 import { authFetch, ensureAccessToken, publicFetch } from './http'
-import { nativeMultipartUpload } from './nativeUpload'
+import { nativeBinaryPut, nativeMultipartUpload } from './nativeUpload'
 
 function request<T>(path: string, init?: RequestInit): Promise<T> {
   return authFetch<T>(path, init)
@@ -243,15 +243,12 @@ export type PickedVideo = {
   mimeType?: string | null
 }
 
-type CloudinaryUploadParams = {
+type StorageUploadParams = {
   configured: boolean
-  cloud_name?: string
-  api_key?: string
-  timestamp?: number
-  signature?: string
-  folder?: string
-  eager?: string
-  eager_async?: string
+  upload_url?: string
+  method?: string
+  headers?: Record<string, string>
+  key?: string
 }
 
 function mimeFromName(name: string) {
@@ -293,58 +290,34 @@ function formFields(fields: Record<string, string>) {
 }
 
 export type ClipUploadProgress = {
-  phase: 'cloudinary' | 'handoff'
+  phase: 'upload' | 'handoff'
   loaded: number
   total: number
 }
 
 /**
- * Send the clip to Cloudinary (same as the web workspace). The website API
- * then queues a job; criclab-video-service claims it. Null = local lab
- * without Cloudinary — fall back to multipart through FastAPI.
+ * Send the clip straight to object storage with a short-lived presigned PUT
+ * from the lab, exactly as the web workspace does, then hand the lab the
+ * object key. The website API queues the job and criclab-video-service
+ * downloads the clip by key on its own machine.
+ *
+ * Returns null only when the lab has no object storage configured (a local
+ * lab): the caller then posts the file through FastAPI instead. A failed PUT
+ * on a configured lab throws — posting the bytes to the API would leave the
+ * clip on the API box, where the video worker cannot reach it.
  */
-export async function cloudinaryClipUrl(
+export async function uploadOriginalKey(
   video: PickedVideo,
   onProgress?: (p: ClipUploadProgress) => void,
 ): Promise<string | null> {
-  let params: CloudinaryUploadParams
-  try {
-    params = await request<CloudinaryUploadParams>('/videos/upload-params')
-  } catch {
-    return null
-  }
-  if (
-    !params.configured ||
-    !params.cloud_name ||
-    !params.api_key ||
-    !params.signature ||
-    params.timestamp == null
-  ) {
-    return null
-  }
-  onProgress?.({ phase: 'cloudinary', loaded: 0, total: 1 })
-  try {
-    const raw = await nativeMultipartUpload({
-      url: `https://api.cloudinary.com/v1_1/${params.cloud_name}/video/upload`,
-      fileUri: video.uri,
-      fieldName: 'file',
-      mimeType: videoMime(video),
-      parameters: {
-        api_key: params.api_key,
-        timestamp: String(params.timestamp),
-        signature: params.signature,
-        folder: params.folder || 'criclab/incoming',
-        ...(params.eager ? { eager: params.eager } : {}),
-        ...(params.eager_async ? { eager_async: params.eager_async } : {}),
-      },
-    })
-    const json = JSON.parse(raw) as { secure_url?: string }
-    if (!json.secure_url) return null
-    onProgress?.({ phase: 'cloudinary', loaded: 1, total: 1 })
-    return json.secure_url
-  } catch {
-    return null
-  }
+  const name = video.name || 'delivery.mp4'
+  const query = new URLSearchParams({ filename: name, content_type: videoMime(video) }).toString()
+  const params = await request<StorageUploadParams>(`/videos/upload-params?${query}`)
+  if (!params.configured || !params.upload_url || !params.key) return null
+  onProgress?.({ phase: 'upload', loaded: 0, total: 1 })
+  await nativeBinaryPut({ url: params.upload_url, fileUri: video.uri, headers: params.headers || {} })
+  onProgress?.({ phase: 'upload', loaded: 1, total: 1 })
+  return params.key
 }
 
 export async function uploadVideo(
@@ -378,16 +351,16 @@ export async function uploadVideo(
   if (input.metersPerPixel != null && !Number.isNaN(input.metersPerPixel)) {
     fields.meters_per_pixel = String(input.metersPerPixel)
   }
-  const remote = await cloudinaryClipUrl(input.video, onProgress)
+  const key = await uploadOriginalKey(input.video, onProgress)
   onProgress?.({ phase: 'handoff', loaded: 1, total: 1 })
-  if (remote) {
+  if (key) {
     return request<{ video_id: string; job_id: string; status: string }>('/videos', {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'content-type': 'application/x-www-form-urlencoded',
       },
-      body: formFields({ ...fields, source_url: remote, original_name: name }),
+      body: formFields({ ...fields, source_key: key, original_name: name }),
     })
   }
   return labMultipart<{ video_id: string; job_id: string; status: string }>('/videos', input.video, {
@@ -424,7 +397,7 @@ export function getDelivery(id: string) {
 }
 
 export function getHealth() {
-  return publicFetch<{ ok: boolean; name?: string }>('/health')
+  return publicFetch<{ ok: boolean; service?: string }>('/health')
 }
 
 export function listDrills(tag?: string) {
