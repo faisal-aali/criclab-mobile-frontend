@@ -161,9 +161,14 @@ export default function ResultsScreen() {
         const overlay = artifacts.overlay_video_url ? await assetUrl(artifacts.overlay_video_url) : ''
         const original = artifacts.original_video_url ? await assetUrl(artifacts.original_video_url) : ''
         const still = artifacts.release_still_url ? await assetUrl(artifacts.release_still_url) : ''
-        const pdf = artifacts.pdf_url
-          ? `${await assetUrl(artifacts.pdf_url)}?download=1`
-          : artifacts.cloudinary_pdf_url || ''
+        // Local `/artifacts/...` links may ask for a download; absolute
+        // CloudFront-signed URLs must not gain a query string or the
+        // signature no longer matches.
+        const pdfBase = artifacts.pdf_url ? await assetUrl(artifacts.pdf_url) : artifacts.cloudinary_pdf_url || ''
+        const pdf =
+          pdfBase && !/^https?:\/\//i.test(pdfBase)
+            ? `${pdfBase}${pdfBase.includes('?') ? '&' : '?'}download=1`
+            : pdfBase
         setProcessedSrc(cloud ? await assetUrl(cloud) : overlay)
         setOriginalSrc(original)
         setStillSrc(still)

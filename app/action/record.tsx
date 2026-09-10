@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   center: { alignItems: 'center', justifyContent: 'center' },
   denied: { color: colors.white, fontWeight: '700', paddingHorizontal: 24, textAlign: 'center' },
   recordingFrame: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderWidth: 4,
     borderColor: '#E11D2A',
   },

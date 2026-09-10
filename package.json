@@ -44,9 +44,9 @@
     "typescript": "~5.9.2"
   },
   "scripts": {
-    "start": "APP_ENV=development expo start",
-    "start:dev": "APP_ENV=development expo start",
-    "start:prod": "APP_ENV=production expo start",
+    "start": "node api.js && APP_ENV=development expo start",
+    "start:dev": "node api.js && APP_ENV=development expo start",
+    "start:prod": "node api.js && APP_ENV=production expo start",
     "android": "APP_ENV=development bash scripts/run-android.sh",
     "ios": "APP_ENV=development expo run:ios",
     "web": "APP_ENV=development expo start --web"

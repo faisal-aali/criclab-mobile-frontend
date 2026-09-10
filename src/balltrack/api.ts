@@ -1,4 +1,4 @@
-import { cloudinaryClipUrl, type ClipUploadProgress, type PickedVideo } from '../api/client'
+import { uploadOriginalKey, type ClipUploadProgress, type PickedVideo } from '../api/client'
 import { getApiBase } from '../api/config'
 import { authFetch, ensureAccessToken } from '../api/http'
 import { nativeMultipartUpload } from '../api/nativeUpload'
@@ -56,16 +56,16 @@ export async function uploadSession(
     calibration: JSON.stringify(input.calibration),
     title: input.title || 'Ball Track session',
   }
-  const remote = await cloudinaryClipUrl(video, onProgress)
+  const key = await uploadOriginalKey(video, onProgress)
   onProgress?.({ phase: 'handoff', loaded: 1, total: 1 })
-  if (remote) {
+  if (key) {
     return request<{ session_id: string; job_id: string; status: string }>('/balltrack/sessions', {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'content-type': 'application/x-www-form-urlencoded',
       },
-      body: formFields({ ...fields, source_url: remote, original_name: video.name }),
+      body: formFields({ ...fields, source_key: key, original_name: video.name }),
     })
   }
   return labFilePost<{ session_id: string; job_id: string; status: string }>(

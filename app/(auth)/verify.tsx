@@ -57,7 +57,7 @@ export default function VerifyScreen() {
           run(async () => {
             const result = await auth.verifyEmail(email.trim(), code.trim())
             adopt(result)
-            router.replace('/(tabs)')
+            router.replace('/')
           })
         }
       />

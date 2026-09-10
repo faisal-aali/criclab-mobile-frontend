@@ -14,8 +14,8 @@ Expo React Native app. Display name **CricLab**. Folder
 | Video pick | `expo-image-picker` | Library + camera, videos only |
 | Ball flight camera | `expo-camera` | Behind-bowler session film |
 | Playback | `expo-video` | Original + overlay clips |
-| Storage | `@react-native-async-storage/async-storage` | Refresh token, profile, API base |
-| PDF / links | `expo-web-browser`, `expo-clipboard` | Open report, copy Cloudinary URL |
+| Storage | `@react-native-async-storage/async-storage` | Refresh token, profile, API base (SecureStore is a recommended follow-up) |
+| PDF / links | `expo-web-browser`, `expo-clipboard` | Open report, copy the processed-video link |
 | Lab API | Fetch → FastAPI with Bearer | Auth, upload, jobs, deliveries, balltrack, drills, leaderboard, tickets, notifications, coaching |
 
 Read **this project's** `package.json` for the exact Expo SDK. Do not assume
@@ -35,7 +35,7 @@ Video workers: `/Users/macbookpro/Desktop/Cric-Lab/criclab-video-service`
 | Pose | MediaPipe BlazePose | Measurement engine (worker only) |
 | Overlay / PDF | OpenCV + ReportLab | Slow-mo HUD + report (worker only) |
 | DB | MongoDB | Users, deliveries, sessions |
-| Ingest | Cloudinary signed upload | Clip bytes skip the API when configured |
+| Ingest | S3 presigned PUT (`GET /videos/upload-params`) | Clip bytes skip the API; the job carries `source_key` |
 | LLM | Ollama `gemma3:4b` | Coaching narrative from metrics JSON only |
 
 Start the API with `./run.sh` from the backend folder (`--host 0.0.0.0`). Start
@@ -51,8 +51,8 @@ directly. `APP_ENV=development` uses LAN `:8000`; `APP_ENV=production` uses
 ```text
 CricLab (Expo)
   → POST http://<lab>:8000/auth/login
-  → GET /videos/upload-params → Cloudinary (when configured)
-  → POST http://<lab>:8000/videos   (Bearer, source_url or file)
+  → GET /videos/upload-params → PUT bytes to the presigned S3 URL
+  → POST http://<lab>:8000/videos   (Bearer, source_key or file)
     → FastAPI queues the job
       → criclab-video-service claims and measures
         → GET /jobs/active (header ring) + GET /jobs/:id

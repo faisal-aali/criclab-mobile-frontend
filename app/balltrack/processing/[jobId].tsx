@@ -34,7 +34,7 @@ export default function BallTrackProcessing() {
         }
         if (data.status === 'cancelled') {
           untrackJob(data.id)
-          router.replace('/(tabs)/balltrack')
+          router.replace('/balltrack')
           return
         }
         if (data.status === 'failed') {
@@ -63,7 +63,7 @@ export default function BallTrackProcessing() {
     try {
       await cancelBalltrackJob(jobId)
       untrackJob(jobId)
-      router.replace('/(tabs)/balltrack')
+      router.replace('/balltrack')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not cancel this analysis')
       setCancelling(false)
@@ -128,7 +128,7 @@ export default function BallTrackProcessing() {
 
       {!failed ? (
         <Pressable
-          onPress={() => router.replace('/(tabs)/balltrack')}
+          onPress={() => router.replace('/balltrack')}
           style={{
             marginTop: 16,
             borderRadius: 14,
@@ -162,7 +162,7 @@ export default function BallTrackProcessing() {
           >
             <Text style={{ color: colors.onLime, fontWeight: '800' }}>Film again</Text>
           </Pressable>
-          <Pressable onPress={() => router.replace('/(tabs)/balltrack')} style={{ paddingVertical: 12, alignItems: 'center' }}>
+          <Pressable onPress={() => router.replace('/balltrack')} style={{ paddingVertical: 12, alignItems: 'center' }}>
             <Text style={{ color: colors.muted, fontWeight: '700' }}>Back to Ball Track</Text>
           </Pressable>
         </View>

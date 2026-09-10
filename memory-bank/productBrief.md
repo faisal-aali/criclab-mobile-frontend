@@ -42,8 +42,8 @@ flight km/h on an Action report, or Action joint angles on a Ball flight ball.
    players’ reports stay private (`result_id` only when `mine`)
 9. **Account / lab URL** — profile, API base (simulator vs LAN), health ping
 
-The phone **uploads a clip** (Cloudinary when configured) and **renders JSON +
-media URLs**. Pose, ball track, overlay, Gemma, and PDF run in
+The phone **uploads a clip** (S3 presigned PUT when the lab has object storage,
+else multipart through the API) and **renders JSON + media URLs**. Pose, ball track, overlay, Gemma, and PDF run in
 `criclab-video-service`. The website API only queues and serves. Leaving a
 screen does not stop a job.
 
@@ -56,7 +56,7 @@ Do not rebuild these in React Native. Display their outputs honestly.
 3. Metrics — ball speed (in-air lock only on Action), arm speed, release, joints,
    stride, 2D rotation proxies, scores, confidence
 4. Ball flight — stump calibration, trajectory, pitch map
-5. Slow-motion overlay + Cloudinary when available
+5. Slow-motion overlay + PDF served as CloudFront signed URLs
 6. AI analysis — Gemma from structured metrics only
 7. PDF — bowling report
 8. Auth, notifications, bookings, drill catalog, leaderboard

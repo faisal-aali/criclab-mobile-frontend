@@ -31,7 +31,6 @@ yarn-error.*
 *.pem
 
 # local env files
-.env
 .env*.local
 
 # typescript
@@ -41,3 +40,9 @@ yarn-error.*
 /ios
 /android
 .android-app-build/
+
+# built binaries (an 89 MB debug APK was being tracked)
+*.apk
+*.aab
+*.ipa
+config.bat

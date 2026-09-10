@@ -19,7 +19,7 @@ Never:
 Pipeline (website API queues; **criclab-video-service** measures):
 
 ```text
-Phone → Cloudinary (signed) or POST /videos file
+Phone → S3 presigned PUT (key) or POST /videos file (local lab only)
   → FastAPI inserts queued job
     → video worker claims → pose → metrics → overlay → Gemma → PDF
       → phone polls GET /jobs/:id and GET /jobs/active
@@ -33,8 +33,8 @@ Phone flow (Action):
 ```text
 Sign in (verified)
   → Action screen (profile + video)
-  → signed Cloudinary upload when configured, else multipart POST /videos
-  → POST /videos with source_url (Bearer) — FastAPI queues only
+  → GET /videos/upload-params → PUT the bytes to S3, else multipart POST /videos
+  → POST /videos with source_key (Bearer) — FastAPI queues only
   → stay in the lab (header ring); optional processing screen
   → GET /jobs/active + GET /jobs/:id until complete
   → Results GET /deliveries/:id
@@ -44,7 +44,7 @@ Phone flow (Ball flight):
 
 ```text
 Align stumps → POST /balltrack/detect-stumps
-  → Film session → Cloudinary (or multipart) → POST /balltrack/sessions
+  → Film session → S3 presigned PUT (or multipart) → POST /balltrack/sessions
   → Poll GET /balltrack/jobs/:id and GET /jobs/active
   → Session / delivery screens
 ```
@@ -122,10 +122,15 @@ All writes go through FastAPI (`src/api/http.ts` + `src/api/client.ts`).
   only (no LAN override, no saved AsyncStorage URL).
   Dev fallbacks: `http://127.0.0.1:8000` iOS sim, `http://10.0.2.2:8000` Android emulator.
 - Hit the lab **directly** (no `/api` Vite proxy). Port 8000.
-- Upload: signed Cloudinary `source_url` when `/videos/upload-params` is
-  configured; otherwise RN file `{ uri, name, type }` multipart. Do not set
-  Content-Type on multipart (boundary must be generated).
-- Prefer Cloudinary playback URLs (`cloudinaryPlaybackUrl` for HEVC `.mov`).
+- Upload: `uploadOriginalKey()` asks `/videos/upload-params`; when the lab
+  has S3 it PUTs the file bytes to the presigned URL (`nativeBinaryPut`, only
+  the signed `Content-Type` header) and posts `source_key`. A failed PUT on a
+  configured lab **throws** — never fall back to multipart there, the clip
+  would land on the API box where the worker cannot fetch it. Multipart
+  (`nativeMultipartUpload`, no manual Content-Type) is for a lab without S3.
+- Playback / PDF URLs from the lab are CloudFront signed GETs: opaque, and
+  never given extra query params (`?download=1` only on relative
+  `/artifacts/...` paths).
 - Jobs may include `expected_start_at` (queued) and `eta_seconds` (running).
   Queued and in-flight clips can be cancelled (`POST /jobs/:id/cancel`,
   `POST /balltrack/jobs/:id/cancel`). The worker stops at the next stage. Do
@@ -172,7 +177,7 @@ follow-through, ball visible in the air after it leaves the hand.
 - Hard-coding only `localhost` with no Settings override (physical phones break)
 - Calling the lab without a Bearer token
 - Polling `/jobs/:id` on a full-screen that the user cannot leave
-- Sending every clip as multipart through FastAPI when Cloudinary is configured
+- Sending a clip as multipart through FastAPI when the lab has S3 (the worker runs on another machine)
 - Mixing Action and Ball flight numbers
 - Batting/fielding features before bowling MVP is solid
 - Reintroducing Notera (notes/PWA) or the retired `CricLabMLReview` path
